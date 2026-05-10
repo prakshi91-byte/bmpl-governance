@@ -28,6 +28,9 @@ import type {
   Entity,
   User,
   Role,
+  RoleId,
+  StandardizationStatus,
+  CoverageState,
 } from "./bpml.generated";
 
 export type {
@@ -44,6 +47,9 @@ export type {
   Entity,
   User,
   Role,
+  RoleId,
+  StandardizationStatus,
+  CoverageState,
 };
 
 // Indexed lookups built once
