@@ -1,7 +1,7 @@
 // AUTO-GENERATED from BPML_V1.xlsx — do not edit by hand.
 // Regenerate via scripts/build-dataset (Python).
 
-export type StandardizationStatus =
+export type StandardizationStatus = string; type _ignored =
   | 'YES/Global' | 'YES/Option' | 'LEG Country Specific' | 'Phase Out' | 'No More Used' | 'Unknown';
 export type CoverageState = 'covered' | 'partial' | 'not_covered' | 'na';
 export type RoleId = 'global-admin' | 'domain-admin' | 'project-manager' | 'viewer';
