@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as HierarchyRouteImport } from './routes/hierarchy'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CapabilitiesIndexRouteImport } from './routes/capabilities.index'
+import { Route as CapabilitiesCapabilityIdRouteImport } from './routes/capabilities.$capabilityId'
 
 const HierarchyRoute = HierarchyRouteImport.update({
   id: '/hierarchy',
@@ -28,34 +29,53 @@ const CapabilitiesIndexRoute = CapabilitiesIndexRouteImport.update({
   path: '/capabilities/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CapabilitiesCapabilityIdRoute =
+  CapabilitiesCapabilityIdRouteImport.update({
+    id: '/capabilities/$capabilityId',
+    path: '/capabilities/$capabilityId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/hierarchy': typeof HierarchyRoute
+  '/capabilities/$capabilityId': typeof CapabilitiesCapabilityIdRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/hierarchy': typeof HierarchyRoute
+  '/capabilities/$capabilityId': typeof CapabilitiesCapabilityIdRoute
   '/capabilities': typeof CapabilitiesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/hierarchy': typeof HierarchyRoute
+  '/capabilities/$capabilityId': typeof CapabilitiesCapabilityIdRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/hierarchy' | '/capabilities/'
+  fullPaths:
+    | '/'
+    | '/hierarchy'
+    | '/capabilities/$capabilityId'
+    | '/capabilities/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/hierarchy' | '/capabilities'
-  id: '__root__' | '/' | '/hierarchy' | '/capabilities/'
+  to: '/' | '/hierarchy' | '/capabilities/$capabilityId' | '/capabilities'
+  id:
+    | '__root__'
+    | '/'
+    | '/hierarchy'
+    | '/capabilities/$capabilityId'
+    | '/capabilities/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HierarchyRoute: typeof HierarchyRoute
+  CapabilitiesCapabilityIdRoute: typeof CapabilitiesCapabilityIdRoute
   CapabilitiesIndexRoute: typeof CapabilitiesIndexRoute
 }
 
@@ -82,12 +102,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CapabilitiesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/capabilities/$capabilityId': {
+      id: '/capabilities/$capabilityId'
+      path: '/capabilities/$capabilityId'
+      fullPath: '/capabilities/$capabilityId'
+      preLoaderRoute: typeof CapabilitiesCapabilityIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HierarchyRoute: HierarchyRoute,
+  CapabilitiesCapabilityIdRoute: CapabilitiesCapabilityIdRoute,
   CapabilitiesIndexRoute: CapabilitiesIndexRoute,
 }
 export const routeTree = rootRouteImport
