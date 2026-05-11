@@ -1,10 +1,13 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { repo, type ProcessCapability } from "@/data/repo";
 import { useMemo, useState } from "react";
 import { DataGrid, type ColumnDef } from "@/components/enterprise/DataGrid";
 import { FilterBar, FilterChip } from "@/components/enterprise/FilterBar";
 import { PageHeader } from "@/components/enterprise/PageHeader";
 import { StatusBadge } from "@/components/enterprise/Badges";
+import { useDraftsStore } from "@/stores/drafts-store";
+import { useUIStore, ROLE_PERMS } from "@/stores/ui-store";
+import { Plus } from "lucide-react";
 
 export const Route = createFileRoute("/capabilities/")({
   head: () => ({
@@ -21,6 +24,9 @@ function CapabilitiesIndex() {
   const [q, setQ] = useState("");
   const [domain, setDomain] = useState("__all");
   const [status, setStatus] = useState("__all");
+  const version = useDraftsStore((s) => s.version);
+  const isDraft = useDraftsStore((s) => s.isDraft);
+  const canEdit = ROLE_PERMS[useUIStore((s) => s.currentRole)].canEdit;
 
   const data = useMemo(() => {
     const all = repo.processes();
@@ -30,15 +36,23 @@ function CapabilitiesIndex() {
       if (q && !p.id.toLowerCase().includes(q.toLowerCase()) && !p.name.toLowerCase().includes(q.toLowerCase())) return false;
       return true;
     });
-  }, [q, domain, status]);
+  }, [q, domain, status, version]);
 
   const columns: ColumnDef<ProcessCapability>[] = useMemo(
     () => [
       {
         header: "ID",
         accessorKey: "id",
-        size: 110,
-        cell: (i) => <span className="num font-medium text-primary">{(i.getValue() as string).trim()}</span>,
+        size: 130,
+        cell: (i) => {
+          const id = (i.getValue() as string).trim();
+          return (
+            <span className="num inline-flex items-center gap-1 font-medium text-primary">
+              {id}
+              {isDraft("capability", id) && <span className="rounded bg-primary-soft px-1 text-[9.5px] uppercase">draft</span>}
+            </span>
+          );
+        },
       },
       { header: "Name", accessorKey: "name" },
       {
@@ -85,6 +99,11 @@ function CapabilitiesIndex() {
         title="Capabilities"
         subtitle="All process capabilities across the BPML taxonomy."
         breadcrumbs={[{ label: "BPML" }, { label: "Capabilities" }]}
+        actions={canEdit ? (
+          <Link to="/create" className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-2.5 text-[12.5px] font-medium text-primary-foreground hover:opacity-90">
+            <Plus className="size-3.5" /> New capability
+          </Link>
+        ) : null}
       />
       <FilterBar search={q} onSearchChange={setQ} placeholder="Search capabilities…">
         <FilterChip label="Domain" value={domain} options={domainOpts} onChange={setDomain} />

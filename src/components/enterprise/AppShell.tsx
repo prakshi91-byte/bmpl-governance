@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { repo, type RoleId } from "@/data/repo";
+import { useDraftsStore } from "@/stores/drafts-store";
+import { Plus } from "lucide-react";
 
 interface RightPanelCtx {
   content: ReactNode | null;
@@ -67,6 +69,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const [rightContent, setRightContent] = useState<ReactNode | null>(null);
   const ctx = useMemo(() => ({ content: rightContent, setContent: setRightContent }), [rightContent]);
+  const hydrate = useDraftsStore((s) => s.hydrate);
+  useEffect(() => { hydrate(); }, [hydrate]);
 
   const path = useRouterState({ select: (r) => r.location.pathname });
   const sections = useMemo(() => {
@@ -216,6 +220,14 @@ function TopBar({
       </div>
 
       <div className="ml-auto flex items-center gap-2">
+        {perms.canEdit && (
+          <Link
+            to="/create"
+            className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-2.5 text-[12.5px] font-medium text-primary-foreground hover:opacity-90"
+          >
+            <Plus className="size-3.5" /> Create
+          </Link>
+        )}
         <span className="hidden items-center gap-1.5 rounded-md border border-border bg-surface-2 px-2 py-1 text-[11.5px] text-muted-foreground md:inline-flex">
           <ShieldCheck className="size-3.5 text-primary" />
           <span className="font-medium text-foreground">{perms.canEdit ? "Write" : "Read"}</span>

@@ -109,6 +109,65 @@ for (const c of coverageCells) {
   coverageByArea.set(c.processAreaId.trim(), arr);
 }
 
+// Mutators — keep arrays + lookup maps in sync when drafts are added at runtime.
+export function addAreaToRepo(a: ProcessArea) {
+  if (areaById.has(a.id.trim())) return;
+  processAreas.push(a);
+  areaById.set(a.id.trim(), a);
+  const arr = areasByDomain.get(a.processDomainId.trim()) ?? [];
+  arr.push(a);
+  areasByDomain.set(a.processDomainId.trim(), arr);
+}
+export function addCapabilityToRepo(c: ProcessCapability) {
+  if (processById.has(c.id.trim())) return;
+  processes.push(c);
+  processById.set(c.id.trim(), c);
+  const arr = procsByArea.get(c.processAreaId.trim()) ?? [];
+  arr.push(c);
+  procsByArea.set(c.processAreaId.trim(), arr);
+}
+export function addTemplateToRepo(
+  t: Template,
+  processIds: string[],
+  steps: TemplateStep[],
+) {
+  if (!templateById.has(t.id)) {
+    templates.push(t);
+    templateById.set(t.id, t);
+  }
+  for (const pid of processIds) {
+    const k = pid.trim();
+    if (!capabilityTemplateLinks.find((l) => l.templateId === t.id && l.processId.trim() === k)) {
+      capabilityTemplateLinks.push({ templateId: t.id, processId: k });
+    }
+    const a1 = templatesByProcess.get(k) ?? [];
+    if (!a1.includes(t.id)) {
+      a1.push(t.id);
+      templatesByProcess.set(k, a1);
+    }
+    const a2 = processesByTemplate.get(t.id) ?? [];
+    if (!a2.includes(k)) {
+      a2.push(k);
+      processesByTemplate.set(t.id, a2);
+    }
+    // bump capability templateCount for display
+    const cap = processById.get(k);
+    if (cap) cap.templateCount = (cap.templateCount ?? 0) + 1;
+  }
+  for (const s of steps) {
+    templateSteps.push(s);
+    const arr = stepsByTemplate.get(s.templateId) ?? [];
+    arr.push(s);
+    stepsByTemplate.set(s.templateId, arr);
+  }
+}
+
+export function nextTemplateId(): number {
+  let max = 0;
+  for (const t of templates) if (t.id > max) max = t.id;
+  return max + 1;
+}
+
 export const repo = {
   domains: () => processDomains,
   areas: () => processAreas,

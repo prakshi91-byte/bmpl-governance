@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StepsRouteImport } from './routes/steps'
 import { Route as HierarchyRouteImport } from './routes/hierarchy'
+import { Route as CreateRouteImport } from './routes/create'
 import { Route as CoverageRouteImport } from './routes/coverage'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -36,6 +37,11 @@ const StepsRoute = StepsRouteImport.update({
 const HierarchyRoute = HierarchyRouteImport.update({
   id: '/hierarchy',
   path: '/hierarchy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreateRoute = CreateRouteImport.update({
+  id: '/create',
+  path: '/create',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CoverageRoute = CoverageRouteImport.update({
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/coverage': typeof CoverageRoute
+  '/create': typeof CreateRoute
   '/hierarchy': typeof HierarchyRoute
   '/steps': typeof StepsRoute
   '/admin/assignments': typeof AdminAssignmentsRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/coverage': typeof CoverageRoute
+  '/create': typeof CreateRoute
   '/hierarchy': typeof HierarchyRoute
   '/steps': typeof StepsRoute
   '/admin/assignments': typeof AdminAssignmentsRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/coverage': typeof CoverageRoute
+  '/create': typeof CreateRoute
   '/hierarchy': typeof HierarchyRoute
   '/steps': typeof StepsRoute
   '/admin/assignments': typeof AdminAssignmentsRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/coverage'
+    | '/create'
     | '/hierarchy'
     | '/steps'
     | '/admin/assignments'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/coverage'
+    | '/create'
     | '/hierarchy'
     | '/steps'
     | '/admin/assignments'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/coverage'
+    | '/create'
     | '/hierarchy'
     | '/steps'
     | '/admin/assignments'
@@ -246,6 +258,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   CoverageRoute: typeof CoverageRoute
+  CreateRoute: typeof CreateRoute
   HierarchyRoute: typeof HierarchyRoute
   StepsRoute: typeof StepsRoute
   BusinessTemplatesBtIdRoute: typeof BusinessTemplatesBtIdRoute
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/hierarchy'
       fullPath: '/hierarchy'
       preLoaderRoute: typeof HierarchyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/create': {
+      id: '/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof CreateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/coverage': {
@@ -411,6 +431,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   CoverageRoute: CoverageRoute,
+  CreateRoute: CreateRoute,
   HierarchyRoute: HierarchyRoute,
   StepsRoute: StepsRoute,
   BusinessTemplatesBtIdRoute: BusinessTemplatesBtIdRoute,
