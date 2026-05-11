@@ -82,7 +82,7 @@ function HierarchyPage() {
       { header: "Templates", accessorKey: "templateCount", size: 100,
         cell: (info) => <span className="num">{info.getValue() as number}</span> },
       { header: "Status", accessorKey: "status", size: 110,
-        cell: (info) => <StatusBadge value={info.getValue() as string} intent="success" /> },
+        cell: (info) => { const v = info.getValue() as string; return <StatusBadge value={v} intent={v === "Active" ? "success" : "neutral"} />; } },
     ],
     [],
   );
