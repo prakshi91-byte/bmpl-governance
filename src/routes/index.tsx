@@ -24,6 +24,7 @@ function Index() {
           <>
             <span><span className="num font-medium text-foreground">{stats.domains}</span> Process Domains</span>
             <span><span className="num font-medium text-foreground">{stats.areas}</span> Areas</span>
+            <span><span className="num font-medium text-foreground">{stats.processes}</span> Processes</span>
             <span><span className="num font-medium text-foreground">{stats.capabilities.toLocaleString()}</span> Capabilities</span>
             <span><span className="num font-medium text-foreground">{stats.templates.toLocaleString()}</span> Templates</span>
             <span><span className="num font-medium text-foreground">{stats.steps.toLocaleString()}</span> Template Steps</span>
@@ -44,7 +45,8 @@ function Index() {
               desc="Drill down through Domains → Areas → Processes → Capabilities."
               accent
             />
-            <WorkspaceCard to="/capabilities" icon={Workflow} title="Capabilities" desc="Browse and govern process capabilities." />
+            <WorkspaceCard to="/processes" icon={Workflow} title="Processes" desc="The 355 SAP business processes grouping capabilities." />
+            <WorkspaceCard to="/capabilities" icon={Boxes} title="Capabilities" desc="Capability leaves linked to reusable templates." />
             <WorkspaceCard to="/templates" icon={Layers} title="Capability Templates" desc="Reusable process templates and standardization." />
             <WorkspaceCard to="/steps" icon={Network} title="Template Steps" desc="SAP transactions and execution model." />
             <WorkspaceCard to="/business-templates" icon={Package} title="Business Templates" desc="Rollout packages by level, product group, geo." />
@@ -62,13 +64,15 @@ function Index() {
                   <th className="px-3 py-2 text-left font-semibold">ID</th>
                   <th className="px-3 py-2 text-left font-semibold">Domain</th>
                   <th className="px-3 py-2 text-right font-semibold">Areas</th>
+                  <th className="px-3 py-2 text-right font-semibold">Processes</th>
                   <th className="px-3 py-2 text-right font-semibold">Capabilities</th>
                 </tr>
               </thead>
               <tbody>
                 {repo.domains().map((d) => {
                   const areas = repo.areasOf(d.id);
-                  const caps = areas.reduce((acc, a) => acc + repo.processesOf(a.id).length, 0);
+                  const procs = areas.reduce((acc, a) => acc + repo.processesOf(a.id).length, 0);
+                  const caps = areas.reduce((acc, a) => acc + repo.capabilitiesOfArea(a.id).length, 0);
                   return (
                     <tr key={d.id} className="border-t border-border hover:bg-surface-hover">
                       <td className="num px-3 py-1.5 font-medium text-primary">
@@ -76,6 +80,7 @@ function Index() {
                       </td>
                       <td className="px-3 py-1.5 truncate">{d.name}</td>
                       <td className="num px-3 py-1.5 text-right text-muted-foreground">{areas.length}</td>
+                      <td className="num px-3 py-1.5 text-right text-muted-foreground">{procs}</td>
                       <td className="num px-3 py-1.5 text-right text-muted-foreground">{caps}</td>
                     </tr>
                   );

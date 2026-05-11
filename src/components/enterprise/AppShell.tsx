@@ -43,7 +43,8 @@ export function useRightPanel(node: ReactNode | null, deps: unknown[] = []) {
 const NAV: { label: string; to: string; icon: typeof Home; section?: string }[] = [
   { label: "Home", to: "/", icon: Home, section: "Overview" },
   { label: "Process Hierarchy", to: "/hierarchy", icon: ListTree, section: "BPML" },
-  { label: "Capabilities", to: "/capabilities", icon: Workflow, section: "BPML" },
+  { label: "Processes", to: "/processes", icon: Workflow, section: "BPML" },
+  { label: "Capabilities", to: "/capabilities", icon: Boxes, section: "BPML" },
   { label: "Capability Templates", to: "/templates", icon: Layers, section: "BPML" },
   { label: "Template Steps", to: "/steps", icon: Network, section: "BPML" },
   { label: "Business Templates", to: "/business-templates", icon: Package, section: "Rollout" },
@@ -205,14 +206,18 @@ function TopBar({
             <SearchGroup label="Domains" items={results.domains.map((d) => ({ id: d.id, name: d.name, to: `/hierarchy?domain=${d.id}` }))} />
             <SearchGroup label="Areas" items={results.areas.map((a) => ({ id: a.id, name: a.name, to: `/hierarchy?area=${a.id}` }))} />
             <SearchGroup
+              label="Processes"
+              items={results.processes.map((p) => ({ id: p.id.trim(), name: p.name, to: `/processes/${encodeURIComponent(p.id.trim())}` }))}
+            />
+            <SearchGroup
               label="Capabilities"
-              items={results.processes.map((p) => ({ id: p.id, name: p.name, to: `/capabilities/${encodeURIComponent(p.id)}` }))}
+              items={results.capabilities.map((c) => ({ id: c.id.trim(), name: c.name, to: `/capabilities/${encodeURIComponent(c.id.trim())}` }))}
             />
             <SearchGroup
               label="Templates"
               items={results.templates.map((t) => ({ id: String(t.id), name: t.name, to: `/templates/${t.id}` }))}
             />
-            {results.domains.length + results.areas.length + results.processes.length + results.templates.length === 0 && (
+            {results.domains.length + results.areas.length + results.processes.length + results.capabilities.length + results.templates.length === 0 && (
               <div className="px-3 py-6 text-center text-[12.5px] text-muted-foreground">No matches.</div>
             )}
           </div>
