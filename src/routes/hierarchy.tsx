@@ -167,11 +167,29 @@ function HierarchyTree({
   onSelectProcess: (domainId: string, areaId: string, processId: string) => void;
 }) {
   const q = query.toLowerCase().trim();
+  const [openDomains, setOpenDomains] = useState<Set<string>>(() => new Set(selectedDomainId ? [selectedDomainId] : []));
+  const [openAreas, setOpenAreas] = useState<Set<string>>(() => new Set(selectedAreaId ? [selectedAreaId] : []));
+
+  // Auto-open ancestors when selection changes externally
+  useEffect(() => {
+    if (selectedDomainId) setOpenDomains((s) => (s.has(selectedDomainId) ? s : new Set(s).add(selectedDomainId)));
+  }, [selectedDomainId]);
+  useEffect(() => {
+    if (selectedAreaId) setOpenAreas((s) => (s.has(selectedAreaId) ? s : new Set(s).add(selectedAreaId)));
+  }, [selectedAreaId]);
+
+  const toggle = (set: Set<string>, setter: (s: Set<string>) => void, id: string) => {
+    const next = new Set(set);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setter(next);
+  };
+
   return (
     <div className="px-1">
       {domains.map((d) => {
         const areas = repo.areasOf(d.id);
-        const isOpen = selectedDomainId === d.id.trim() || q.length > 0;
+        const did = d.id.trim();
+        const isOpen = openDomains.has(did) || q.length > 0;
         if (q && !d.name.toLowerCase().includes(q) && !d.id.toLowerCase().includes(q)
             && !areas.some((a) => a.id.toLowerCase().includes(q) || a.name.toLowerCase().includes(q))) return null;
         const totalCaps = areas.reduce((acc, a) => acc + repo.capabilitiesOfArea(a.id).length, 0);
