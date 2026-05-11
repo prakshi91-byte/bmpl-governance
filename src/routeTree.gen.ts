@@ -9,14 +9,43 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StepsRouteImport } from './routes/steps'
 import { Route as HierarchyRouteImport } from './routes/hierarchy'
+import { Route as CoverageRouteImport } from './routes/coverage'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
+import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
 import { Route as CapabilitiesIndexRouteImport } from './routes/capabilities.index'
+import { Route as BusinessTemplatesIndexRouteImport } from './routes/business-templates.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as TemplatesTemplateIdRouteImport } from './routes/templates.$templateId'
+import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 import { Route as CapabilitiesCapabilityIdRouteImport } from './routes/capabilities.$capabilityId'
+import { Route as BusinessTemplatesBtIdRouteImport } from './routes/business-templates.$btId'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminRolesRouteImport } from './routes/admin.roles'
+import { Route as AdminMasterDataRouteImport } from './routes/admin.master-data'
+import { Route as AdminAssignmentsRouteImport } from './routes/admin.assignments'
 
+const StepsRoute = StepsRouteImport.update({
+  id: '/steps',
+  path: '/steps',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HierarchyRoute = HierarchyRouteImport.update({
   id: '/hierarchy',
   path: '/hierarchy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoverageRoute = CoverageRouteImport.update({
+  id: '/coverage',
+  path: '/coverage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -24,9 +53,39 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TemplatesIndexRoute = TemplatesIndexRouteImport.update({
+  id: '/templates/',
+  path: '/templates/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
+  id: '/projects/',
+  path: '/projects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CapabilitiesIndexRoute = CapabilitiesIndexRouteImport.update({
   id: '/capabilities/',
   path: '/capabilities/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessTemplatesIndexRoute = BusinessTemplatesIndexRouteImport.update({
+  id: '/business-templates/',
+  path: '/business-templates/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const TemplatesTemplateIdRoute = TemplatesTemplateIdRouteImport.update({
+  id: '/templates/$templateId',
+  path: '/templates/$templateId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
+  id: '/projects/$projectId',
+  path: '/projects/$projectId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CapabilitiesCapabilityIdRoute =
@@ -35,57 +94,198 @@ const CapabilitiesCapabilityIdRoute =
     path: '/capabilities/$capabilityId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const BusinessTemplatesBtIdRoute = BusinessTemplatesBtIdRouteImport.update({
+  id: '/business-templates/$btId',
+  path: '/business-templates/$btId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRolesRoute = AdminRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMasterDataRoute = AdminMasterDataRouteImport.update({
+  id: '/master-data',
+  path: '/master-data',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAssignmentsRoute = AdminAssignmentsRouteImport.update({
+  id: '/assignments',
+  path: '/assignments',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/coverage': typeof CoverageRoute
   '/hierarchy': typeof HierarchyRoute
+  '/steps': typeof StepsRoute
+  '/admin/assignments': typeof AdminAssignmentsRoute
+  '/admin/master-data': typeof AdminMasterDataRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/business-templates/$btId': typeof BusinessTemplatesBtIdRoute
   '/capabilities/$capabilityId': typeof CapabilitiesCapabilityIdRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/templates/$templateId': typeof TemplatesTemplateIdRoute
+  '/admin/': typeof AdminIndexRoute
+  '/business-templates/': typeof BusinessTemplatesIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
+  '/projects/': typeof ProjectsIndexRoute
+  '/templates/': typeof TemplatesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/coverage': typeof CoverageRoute
   '/hierarchy': typeof HierarchyRoute
+  '/steps': typeof StepsRoute
+  '/admin/assignments': typeof AdminAssignmentsRoute
+  '/admin/master-data': typeof AdminMasterDataRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/business-templates/$btId': typeof BusinessTemplatesBtIdRoute
   '/capabilities/$capabilityId': typeof CapabilitiesCapabilityIdRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/templates/$templateId': typeof TemplatesTemplateIdRoute
+  '/admin': typeof AdminIndexRoute
+  '/business-templates': typeof BusinessTemplatesIndexRoute
   '/capabilities': typeof CapabilitiesIndexRoute
+  '/projects': typeof ProjectsIndexRoute
+  '/templates': typeof TemplatesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/coverage': typeof CoverageRoute
   '/hierarchy': typeof HierarchyRoute
+  '/steps': typeof StepsRoute
+  '/admin/assignments': typeof AdminAssignmentsRoute
+  '/admin/master-data': typeof AdminMasterDataRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/business-templates/$btId': typeof BusinessTemplatesBtIdRoute
   '/capabilities/$capabilityId': typeof CapabilitiesCapabilityIdRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/templates/$templateId': typeof TemplatesTemplateIdRoute
+  '/admin/': typeof AdminIndexRoute
+  '/business-templates/': typeof BusinessTemplatesIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
+  '/projects/': typeof ProjectsIndexRoute
+  '/templates/': typeof TemplatesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/coverage'
     | '/hierarchy'
+    | '/steps'
+    | '/admin/assignments'
+    | '/admin/master-data'
+    | '/admin/roles'
+    | '/admin/users'
+    | '/business-templates/$btId'
     | '/capabilities/$capabilityId'
+    | '/projects/$projectId'
+    | '/templates/$templateId'
+    | '/admin/'
+    | '/business-templates/'
     | '/capabilities/'
+    | '/projects/'
+    | '/templates/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/hierarchy' | '/capabilities/$capabilityId' | '/capabilities'
+  to:
+    | '/'
+    | '/coverage'
+    | '/hierarchy'
+    | '/steps'
+    | '/admin/assignments'
+    | '/admin/master-data'
+    | '/admin/roles'
+    | '/admin/users'
+    | '/business-templates/$btId'
+    | '/capabilities/$capabilityId'
+    | '/projects/$projectId'
+    | '/templates/$templateId'
+    | '/admin'
+    | '/business-templates'
+    | '/capabilities'
+    | '/projects'
+    | '/templates'
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/coverage'
     | '/hierarchy'
+    | '/steps'
+    | '/admin/assignments'
+    | '/admin/master-data'
+    | '/admin/roles'
+    | '/admin/users'
+    | '/business-templates/$btId'
     | '/capabilities/$capabilityId'
+    | '/projects/$projectId'
+    | '/templates/$templateId'
+    | '/admin/'
+    | '/business-templates/'
     | '/capabilities/'
+    | '/projects/'
+    | '/templates/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  CoverageRoute: typeof CoverageRoute
   HierarchyRoute: typeof HierarchyRoute
+  StepsRoute: typeof StepsRoute
+  BusinessTemplatesBtIdRoute: typeof BusinessTemplatesBtIdRoute
   CapabilitiesCapabilityIdRoute: typeof CapabilitiesCapabilityIdRoute
+  ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
+  TemplatesTemplateIdRoute: typeof TemplatesTemplateIdRoute
+  BusinessTemplatesIndexRoute: typeof BusinessTemplatesIndexRoute
   CapabilitiesIndexRoute: typeof CapabilitiesIndexRoute
+  ProjectsIndexRoute: typeof ProjectsIndexRoute
+  TemplatesIndexRoute: typeof TemplatesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/steps': {
+      id: '/steps'
+      path: '/steps'
+      fullPath: '/steps'
+      preLoaderRoute: typeof StepsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/hierarchy': {
       id: '/hierarchy'
       path: '/hierarchy'
       fullPath: '/hierarchy'
       preLoaderRoute: typeof HierarchyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/coverage': {
+      id: '/coverage'
+      path: '/coverage'
+      fullPath: '/coverage'
+      preLoaderRoute: typeof CoverageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -95,11 +295,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/templates/': {
+      id: '/templates/'
+      path: '/templates'
+      fullPath: '/templates/'
+      preLoaderRoute: typeof TemplatesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/': {
+      id: '/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof ProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/capabilities/': {
       id: '/capabilities/'
       path: '/capabilities'
       fullPath: '/capabilities/'
       preLoaderRoute: typeof CapabilitiesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/business-templates/': {
+      id: '/business-templates/'
+      path: '/business-templates'
+      fullPath: '/business-templates/'
+      preLoaderRoute: typeof BusinessTemplatesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/templates/$templateId': {
+      id: '/templates/$templateId'
+      path: '/templates/$templateId'
+      fullPath: '/templates/$templateId'
+      preLoaderRoute: typeof TemplatesTemplateIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/$projectId': {
+      id: '/projects/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId'
+      preLoaderRoute: typeof ProjectsProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/capabilities/$capabilityId': {
@@ -109,14 +351,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CapabilitiesCapabilityIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/business-templates/$btId': {
+      id: '/business-templates/$btId'
+      path: '/business-templates/$btId'
+      fullPath: '/business-templates/$btId'
+      preLoaderRoute: typeof BusinessTemplatesBtIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/roles': {
+      id: '/admin/roles'
+      path: '/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AdminRolesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/master-data': {
+      id: '/admin/master-data'
+      path: '/master-data'
+      fullPath: '/admin/master-data'
+      preLoaderRoute: typeof AdminMasterDataRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/assignments': {
+      id: '/admin/assignments'
+      path: '/assignments'
+      fullPath: '/admin/assignments'
+      preLoaderRoute: typeof AdminAssignmentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminAssignmentsRoute: typeof AdminAssignmentsRoute
+  AdminMasterDataRoute: typeof AdminMasterDataRoute
+  AdminRolesRoute: typeof AdminRolesRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAssignmentsRoute: AdminAssignmentsRoute,
+  AdminMasterDataRoute: AdminMasterDataRoute,
+  AdminRolesRoute: AdminRolesRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
+  CoverageRoute: CoverageRoute,
   HierarchyRoute: HierarchyRoute,
+  StepsRoute: StepsRoute,
+  BusinessTemplatesBtIdRoute: BusinessTemplatesBtIdRoute,
   CapabilitiesCapabilityIdRoute: CapabilitiesCapabilityIdRoute,
+  ProjectsProjectIdRoute: ProjectsProjectIdRoute,
+  TemplatesTemplateIdRoute: TemplatesTemplateIdRoute,
+  BusinessTemplatesIndexRoute: BusinessTemplatesIndexRoute,
   CapabilitiesIndexRoute: CapabilitiesIndexRoute,
+  ProjectsIndexRoute: ProjectsIndexRoute,
+  TemplatesIndexRoute: TemplatesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
