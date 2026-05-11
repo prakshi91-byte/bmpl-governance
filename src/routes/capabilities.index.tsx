@@ -1,0 +1,101 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { repo, type ProcessCapability } from "@/data/repo";
+import { useMemo, useState } from "react";
+import { DataGrid, type ColumnDef } from "@/components/enterprise/DataGrid";
+import { FilterBar, FilterChip } from "@/components/enterprise/FilterBar";
+import { PageHeader } from "@/components/enterprise/PageHeader";
+import { StatusBadge } from "@/components/enterprise/Badges";
+
+export const Route = createFileRoute("/capabilities/")({
+  head: () => ({
+    meta: [
+      { title: "Capabilities — BPML Governance" },
+      { name: "description", content: "Browse and govern SAP process capabilities across all process domains." },
+    ],
+  }),
+  component: CapabilitiesIndex,
+});
+
+function CapabilitiesIndex() {
+  const navigate = useNavigate();
+  const [q, setQ] = useState("");
+  const [domain, setDomain] = useState("__all");
+  const [status, setStatus] = useState("__all");
+
+  const data = useMemo(() => {
+    const all = repo.processes();
+    return all.filter((p) => {
+      if (domain !== "__all" && p.processDomainId.trim() !== domain) return false;
+      if (status !== "__all" && p.status !== status) return false;
+      if (q && !p.id.toLowerCase().includes(q.toLowerCase()) && !p.name.toLowerCase().includes(q.toLowerCase())) return false;
+      return true;
+    });
+  }, [q, domain, status]);
+
+  const columns: ColumnDef<ProcessCapability>[] = useMemo(
+    () => [
+      {
+        header: "ID",
+        accessorKey: "id",
+        size: 110,
+        cell: (i) => <span className="num font-medium text-primary">{(i.getValue() as string).trim()}</span>,
+      },
+      { header: "Name", accessorKey: "name" },
+      {
+        header: "Domain",
+        accessorFn: (r) => repo.domain(r.processDomainId)?.name ?? r.processDomainId,
+        size: 220,
+        cell: (i) => <span className="truncate text-muted-foreground">{i.getValue() as string}</span>,
+      },
+      {
+        header: "Area",
+        accessorFn: (r) => repo.area(r.processAreaId)?.name ?? r.processAreaId,
+        size: 220,
+        cell: (i) => <span className="truncate text-muted-foreground">{i.getValue() as string}</span>,
+      },
+      { header: "Owner", accessorKey: "owner", size: 150 },
+      { header: "Templates", accessorKey: "templateCount", size: 100, cell: (i) => <span className="num">{i.getValue() as number}</span> },
+      {
+        header: "Status",
+        accessorKey: "status",
+        size: 110,
+        cell: (i) => {
+          const v = i.getValue() as string;
+          return <StatusBadge value={v} intent={v === "Active" ? "success" : v === "Draft" ? "info" : "warn"} />;
+        },
+      },
+    ],
+    [],
+  );
+
+  const domainOpts = [
+    { value: "__all", label: "All", count: repo.processes().length },
+    ...repo.domains().map((d) => ({ value: d.id.trim(), label: d.id.trim(), count: repo.areasOf(d.id).reduce((a, x) => a + repo.processesOf(x.id).length, 0) })),
+  ];
+  const statusOpts = [
+    { value: "__all", label: "All" },
+    { value: "Active", label: "Active" },
+    { value: "Draft", label: "Draft" },
+    { value: "Under Review", label: "Under Review" },
+  ];
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <PageHeader
+        title="Capabilities"
+        subtitle="All process capabilities across the BPML taxonomy."
+        breadcrumbs={[{ label: "BPML" }, { label: "Capabilities" }]}
+      />
+      <FilterBar search={q} onSearchChange={setQ} placeholder="Search capabilities…">
+        <FilterChip label="Domain" value={domain} options={domainOpts} onChange={setDomain} />
+        <FilterChip label="Status" value={status} options={statusOpts} onChange={setStatus} />
+      </FilterBar>
+      <DataGrid
+        columns={columns}
+        data={data}
+        rowKey={(r) => r.id}
+        onRowClick={(r) => navigate({ to: "/capabilities/$capabilityId", params: { capabilityId: r.id.trim() } })}
+      />
+    </div>
+  );
+}
