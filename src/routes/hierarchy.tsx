@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { repo, type Capability, type Process, type ProcessDomain } from "@/data/repo";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, Folder, FolderOpen, Layers, Search, Workflow, X, Boxes } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRightPanel } from "@/components/enterprise/AppShell";
@@ -167,49 +167,82 @@ function HierarchyTree({
   onSelectProcess: (domainId: string, areaId: string, processId: string) => void;
 }) {
   const q = query.toLowerCase().trim();
+  const [openDomains, setOpenDomains] = useState<Set<string>>(() => new Set(selectedDomainId ? [selectedDomainId] : []));
+  const [openAreas, setOpenAreas] = useState<Set<string>>(() => new Set(selectedAreaId ? [selectedAreaId] : []));
+
+  // Auto-open ancestors when selection changes externally
+  useEffect(() => {
+    if (selectedDomainId) setOpenDomains((s) => (s.has(selectedDomainId) ? s : new Set(s).add(selectedDomainId)));
+  }, [selectedDomainId]);
+  useEffect(() => {
+    if (selectedAreaId) setOpenAreas((s) => (s.has(selectedAreaId) ? s : new Set(s).add(selectedAreaId)));
+  }, [selectedAreaId]);
+
+  const toggle = (set: Set<string>, setter: (s: Set<string>) => void, id: string) => {
+    const next = new Set(set);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setter(next);
+  };
+
   return (
     <div className="px-1">
       {domains.map((d) => {
         const areas = repo.areasOf(d.id);
-        const isOpen = selectedDomainId === d.id.trim() || q.length > 0;
+        const did = d.id.trim();
+        const isOpen = openDomains.has(did) || q.length > 0;
         if (q && !d.name.toLowerCase().includes(q) && !d.id.toLowerCase().includes(q)
             && !areas.some((a) => a.id.toLowerCase().includes(q) || a.name.toLowerCase().includes(q))) return null;
         const totalCaps = areas.reduce((acc, a) => acc + repo.capabilitiesOfArea(a.id).length, 0);
         return (
           <div key={d.id} className="mb-0.5">
-            <button type="button" onClick={() => onSelectDomain(d.id.trim())}
-              className={cn("flex w-full items-center gap-1.5 rounded px-1.5 py-1 text-left text-[12.5px] hover:bg-surface-hover",
-                selectedDomainId === d.id.trim() && "bg-primary-soft text-primary")}>
-              <ChevronRight className={cn("size-3 shrink-0 text-muted-foreground transition-transform", isOpen && "rotate-90")} />
+            <div
+              className={cn("flex w-full items-center gap-1.5 rounded px-1.5 py-1 text-left text-[12.5px] hover:bg-surface-hover cursor-pointer",
+                selectedDomainId === did && "bg-primary-soft text-primary")}
+              onClick={() => onSelectDomain(did)}>
+              <button
+                type="button"
+                aria-label={isOpen ? "Collapse" : "Expand"}
+                onClick={(e) => { e.stopPropagation(); toggle(openDomains, setOpenDomains, did); }}
+                className="grid place-content-center size-4 shrink-0 rounded hover:bg-surface-hover">
+                <ChevronRight className={cn("size-3 text-muted-foreground transition-transform", isOpen && "rotate-90")} />
+              </button>
               {isOpen ? <FolderOpen className="size-3.5 shrink-0 text-primary" /> : <Folder className="size-3.5 shrink-0 text-muted-foreground" />}
-              <span className="num text-[11.5px] font-medium text-muted-foreground">{d.id.trim()}</span>
+              <span className="num text-[11.5px] font-medium text-muted-foreground">{did}</span>
               <span className="truncate">{d.name.replace(/^[A-Z0-9]+ - /, "")}</span>
               <span className="num ml-auto rounded bg-muted px-1 py-0 text-[10px] text-muted-foreground">{totalCaps}</span>
-            </button>
+            </div>
             {isOpen && (
               <div className="ml-4 border-l border-border pl-2">
                 {areas.map((a) => {
                   const caps = repo.capabilitiesOfArea(a.id).length;
                   const procs = repo.processesOf(a.id);
-                  const areaActive = selectedAreaId?.trim() === a.id.trim();
-                  const areaOpen = areaActive || q.length > 0;
+                  const aid = a.id.trim();
+                  const areaActive = selectedAreaId?.trim() === aid;
+                  const areaOpen = openAreas.has(aid) || q.length > 0;
                   return (
                     <div key={a.id}>
-                      <button type="button" onClick={() => onSelectArea(d.id.trim(), a.id.trim())}
-                        className={cn("flex w-full items-center gap-1.5 rounded px-1.5 py-1 text-left text-[12px] text-foreground/85 hover:bg-surface-hover",
-                          areaActive && "bg-primary-soft text-primary")}>
-                        <ChevronRight className={cn("size-3 shrink-0 text-muted-foreground transition-transform", areaOpen && "rotate-90")} />
+                      <div
+                        className={cn("flex w-full items-center gap-1.5 rounded px-1.5 py-1 text-left text-[12px] text-foreground/85 hover:bg-surface-hover cursor-pointer",
+                          areaActive && "bg-primary-soft text-primary")}
+                        onClick={() => onSelectArea(did, aid)}>
+                        <button
+                          type="button"
+                          aria-label={areaOpen ? "Collapse" : "Expand"}
+                          onClick={(e) => { e.stopPropagation(); toggle(openAreas, setOpenAreas, aid); }}
+                          className="grid place-content-center size-4 shrink-0 rounded hover:bg-surface-hover">
+                          <ChevronRight className={cn("size-3 text-muted-foreground transition-transform", areaOpen && "rotate-90")} />
+                        </button>
                         <Workflow className="size-3 shrink-0 text-muted-foreground" />
-                        <span className="num text-[10.5px] text-muted-foreground">{a.id.trim()}</span>
+                        <span className="num text-[10.5px] text-muted-foreground">{aid}</span>
                         <span className="truncate">{a.name.replace(/^[A-Z0-9.]+ - /, "")}</span>
                         <span className="num ml-auto text-[10.5px] text-muted-foreground">{caps}</span>
-                      </button>
+                      </div>
                       {areaOpen && (
                         <div className="ml-4 border-l border-border pl-2">
                           {procs.map((p) => {
                             const procActive = selectedProcessId?.trim() === p.id.trim();
                             return (
-                              <button key={p.id} type="button" onClick={() => onSelectProcess(d.id.trim(), a.id.trim(), p.id.trim())}
+                              <button key={p.id} type="button" onClick={() => onSelectProcess(did, aid, p.id.trim())}
                                 className={cn("flex w-full items-center gap-1.5 rounded px-1.5 py-1 text-left text-[12px] text-foreground/80 hover:bg-surface-hover",
                                   procActive && "bg-primary-soft text-primary")}>
                                 <Boxes className="size-3 shrink-0 text-muted-foreground" />
