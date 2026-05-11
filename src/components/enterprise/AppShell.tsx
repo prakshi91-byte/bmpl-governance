@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useUIStore, ROLE_PERMS } from "@/stores/ui-store";
 import { Link, useRouterState } from "@tanstack/react-router";
-import bekaertLogo from "@/assets/bekaert-logo.png";
 import {
   Boxes,
   ChevronsLeft,
@@ -97,16 +96,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           )}
         >
           <div className="flex h-12 items-center gap-2 border-b border-border px-3">
-            {navCollapsed ? (
-              <img src={bekaertLogo} alt="Bekaert" className="h-6 w-auto object-contain" />
-            ) : (
-              <>
-                <img src={bekaertLogo} alt="Bekaert" className="h-6 w-auto shrink-0 object-contain" />
-                <div className="min-w-0 border-l border-border pl-2">
-                  <div className="truncate text-[12px] font-semibold leading-tight">BPML Governance</div>
-                  <div className="truncate text-[10px] uppercase tracking-wide text-muted-foreground">Platform</div>
-                </div>
-              </>
+            <div className="grid size-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
+              <Sparkles className="size-4" />
+            </div>
+            {!navCollapsed && (
+              <div className="min-w-0">
+                <div className="truncate text-[13px] font-semibold leading-tight">BPML Governance</div>
+                <div className="truncate text-[10.5px] uppercase tracking-wide text-muted-foreground">Platform</div>
+              </div>
             )}
           </div>
           <nav className="thin-scrollbar flex-1 overflow-y-auto px-2 py-3">
