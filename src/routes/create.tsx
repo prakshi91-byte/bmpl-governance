@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/enterprise/PageHeader";
-import { repo, nextTemplateId, STANDARD_OPTIONS, type ProcessArea, type ProcessCapability, type Template, type TemplateStep } from "@/data/repo";
+import { repo, nextTemplateId, STANDARD_OPTIONS, type ProcessArea, type Capability, type Template, type TemplateStep } from "@/data/repo";
 import { useDraftsStore } from "@/stores/drafts-store";
 import { useUIStore, ROLE_PERMS } from "@/stores/ui-store";
 import { Lock, Plus, Trash2, CheckCircle2 } from "lucide-react";
@@ -130,36 +130,36 @@ function CapabilityForm() {
   const [domainId, setDomainId] = useState(domains[0]?.id ?? "");
   const areas = useMemo(() => repo.areasOf(domainId), [domainId]);
   const [areaId, setAreaId] = useState(areas[0]?.id ?? "");
+  const procs = useMemo(() => repo.processesOf(areaId), [areaId]);
+  const [processId, setProcessId] = useState(procs[0]?.id ?? "");
   const [shortCode, setShortCode] = useState("");
   const [name, setName] = useState("");
-  const [owner, setOwner] = useState("");
   const [status, setStatus] = useState("Draft");
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
 
   const effectiveAreaId = areaId || areas[0]?.id;
+  const effectiveProcessId = processId || procs[0]?.id;
   const fullId = useMemo(() => {
-    const c = shortCode.trim().toUpperCase();
-    if (!effectiveAreaId || !c) return "";
-    return `${effectiveAreaId}.${c}`;
-  }, [effectiveAreaId, shortCode]);
+    const c = shortCode.trim();
+    if (!effectiveProcessId || !c) return "";
+    return `${effectiveProcessId}.${c}`;
+  }, [effectiveProcessId, shortCode]);
 
   function submit() {
     setError(null);
-    if (!effectiveAreaId) return setError("Select a process area.");
-    if (!fullId) return setError("Short code is required.");
+    if (!effectiveProcessId) return setError("Select a process.");
+    if (!fullId) return setError("Short code is required (e.g. 0000).");
     if (!name.trim()) return setError("Name is required.");
-    if (!owner.trim()) return setError("Owner is required.");
-    if (repo.process(fullId)) return setError(`Capability ${fullId} already exists.`);
-    const cap: ProcessCapability = {
+    if (repo.capability(fullId)) return setError(`Capability ${fullId} already exists.`);
+    const cap: Capability = {
       id: fullId,
       name: name.trim(),
-      processAreaId: effectiveAreaId,
+      processId: effectiveProcessId,
+      processAreaId: effectiveAreaId!,
       processDomainId: domainId,
-      owner: owner.trim(),
-      templateCount: 0,
-      deployments: 0,
       status,
+      templateCount: 0,
     };
     addCapability(cap);
     setSaved(fullId);
@@ -169,37 +169,38 @@ function CapabilityForm() {
 
   return (
     <FormShell title="New Capability" preview={fullId ? <Pill>{fullId}</Pill> : null}>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-3">
         <Field label="Process Domain" required>
-          <select value={domainId} onChange={(e) => { setDomainId(e.target.value); setAreaId(""); }} className={inputCls}>
+          <select value={domainId} onChange={(e) => { setDomainId(e.target.value); setAreaId(""); setProcessId(""); }} className={inputCls}>
             {domains.map((d) => (<option key={d.id} value={d.id}>{d.name}</option>))}
           </select>
         </Field>
         <Field label="Process Area" required>
-          <select value={effectiveAreaId} onChange={(e) => setAreaId(e.target.value)} className={inputCls}>
-            {areas.length === 0 && <option value="">— No areas in this domain —</option>}
+          <select value={effectiveAreaId} onChange={(e) => { setAreaId(e.target.value); setProcessId(""); }} className={inputCls}>
+            {areas.length === 0 && <option value="">— No areas —</option>}
             {areas.map((a) => (<option key={a.id} value={a.id}>{a.name}</option>))}
           </select>
         </Field>
+        <Field label="Process" required>
+          <select value={effectiveProcessId} onChange={(e) => setProcessId(e.target.value)} className={inputCls}>
+            {procs.length === 0 && <option value="">— No processes —</option>}
+            {procs.map((p) => (<option key={p.id} value={p.id}>{p.id.trim()} — {p.name.replace(/^[A-Z0-9.]+\s*-\s*/, "")}</option>))}
+          </select>
+        </Field>
       </div>
-      <Field label="Short code" required hint="Appended after the area. E.g. '0500'">
-        <input value={shortCode} onChange={(e) => setShortCode(e.target.value)} placeholder="0500" className={inputCls} />
+      <Field label="Short code" required hint="Appended after the process. E.g. '0001' → A2R.1000.0001">
+        <input value={shortCode} onChange={(e) => setShortCode(e.target.value)} placeholder="0001" className={inputCls} />
       </Field>
       <Field label="Capability name" required>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Manage Vendor Invoice Postings" className={inputCls} />
       </Field>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Owner" required>
-          <input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Anna Janssen" className={inputCls} />
-        </Field>
-        <Field label="Status">
-          <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputCls}>
-            <option>Draft</option>
-            <option>Active</option>
-            <option>Under Review</option>
-          </select>
-        </Field>
-      </div>
+      <Field label="Status">
+        <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputCls}>
+          <option>Draft</option>
+          <option>Active</option>
+          <option>Under Review</option>
+        </select>
+      </Field>
       <FormActions error={error} saved={saved && `Capability ${saved} created.`} onSubmit={submit} extra={
         saved && (
           <button onClick={() => navigate({ to: "/capabilities/$capabilityId", params: { capabilityId: saved } })} className={btnSecondary}>
@@ -225,7 +226,7 @@ function TemplateForm() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<number | null>(null);
 
-  const allCaps = repo.processes();
+  const allCaps = repo.capabilities();
   const capMatches = useMemo(() => {
     const q = capQuery.toLowerCase().trim();
     if (!q) return [];
@@ -243,7 +244,7 @@ function TemplateForm() {
       id,
       name: name.trim(),
       standard,
-      processIds: [...selectedCaps],
+      capabilityIds: [...selectedCaps],
       stepCount: cleanSteps.length,
     };
     const stepRows: TemplateStep[] = cleanSteps.map((s, i) => ({
@@ -254,7 +255,7 @@ function TemplateForm() {
       standard: s.standard || standard,
       status: s.status || "Active",
     }));
-    addTemplate({ tpl, processIds: selectedCaps, steps: stepRows });
+    addTemplate({ tpl, capabilityIds: selectedCaps, steps: stepRows });
     setSaved(id);
     setName("");
     setSelectedCaps([]);
@@ -279,7 +280,7 @@ function TemplateForm() {
           <div className="mb-2 flex flex-wrap gap-1">
             {selectedCaps.length === 0 && <span className="text-[12px] text-muted-foreground">No capabilities linked yet.</span>}
             {selectedCaps.map((id) => {
-              const c = repo.process(id);
+              const c = repo.capability(id);
               return (
                 <span key={id} className="inline-flex items-center gap-1 rounded bg-primary-soft px-1.5 py-0.5 text-[11.5px] text-primary">
                   <span className="num">{id.trim()}</span>

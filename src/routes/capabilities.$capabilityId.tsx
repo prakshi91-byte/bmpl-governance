@@ -10,7 +10,7 @@ import { Layers } from "lucide-react";
 
 export const Route = createFileRoute("/capabilities/$capabilityId")({
   loader: ({ params }) => {
-    const cap = repo.process(params.capabilityId);
+    const cap = repo.capability(params.capabilityId);
     if (!cap) throw notFound();
     return { capability: cap };
   },
@@ -35,6 +35,7 @@ function CapabilityDetail() {
   const [tq, setTq] = useState("");
   const area = repo.area(capability.processAreaId);
   const domain = repo.domain(capability.processDomainId);
+  const proc = repo.process(capability.processId);
   const templates = repo.templatesOf(capability.id);
 
   const filteredTemplates = useMemo(
@@ -61,12 +62,16 @@ function CapabilityDetail() {
       </div>
       <div className="grid grid-cols-2 gap-2">
         <Stat label="Templates" value={capability.templateCount} />
-        <Stat label="Deployments" value={capability.deployments} />
+        <Stat label="Status" value={capability.status} />
       </div>
-      <div className="rounded-md border border-border bg-surface-2 p-2 text-[12px]">
-        <div className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Owner</div>
-        <div className="mt-0.5">{capability.owner}</div>
-      </div>
+      {proc && (
+        <div className="rounded-md border border-border bg-surface-2 p-2 text-[12px]">
+          <div className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Parent process</div>
+          <Link to="/processes/$processId" params={{ processId: proc.id.trim() }} className="mt-0.5 block text-primary hover:underline">
+            <span className="num text-[11px]">{proc.id.trim()}</span> · {proc.name}
+          </Link>
+        </div>
+      )}
     </div>,
     [capability.id],
   );
@@ -89,7 +94,7 @@ function CapabilityDetail() {
           <>
             <span>Domain <span className="text-foreground">{domain?.name ?? "—"}</span></span>
             <span>Area <span className="text-foreground">{area?.name ?? "—"}</span></span>
-            <span>Owner <span className="text-foreground">{capability.owner}</span></span>
+            <span>Process <span className="text-foreground">{proc?.name ?? "—"}</span></span>
             <StatusBadge value={capability.status} intent={capability.status === "Active" ? "success" : "info"} />
           </>
         }
@@ -120,13 +125,11 @@ function CapabilityDetail() {
           <Card title="Hierarchy">
             <Row label="Process Domain" value={domain?.name ?? "—"} />
             <Row label="Process Area" value={area?.name ?? "—"} />
-            <Row label="IT Domain" value={domain?.itDomain || "—"} />
-            <Row label="IT Service" value={domain?.itService || "—"} />
+            <Row label="Process" value={proc ? <Link to="/processes/$processId" params={{ processId: proc.id.trim() }} className="text-primary hover:underline">{proc.name}</Link> : "—"} />
           </Card>
           <Card title="Governance">
-            <Row label="Owner" value={capability.owner} />
             <Row label="Linked Templates" value={<span className="num">{capability.templateCount}</span>} />
-            <Row label="Deployments" value={<span className="num">{capability.deployments}</span>} />
+            <Row label="Sibling capabilities" value={<span className="num">{repo.capabilitiesOf(capability.processId).length}</span>} />
           </Card>
         </div>
       )}
@@ -146,13 +149,13 @@ function CapabilityDetail() {
 
       {tab === "Relationships" && (
         <div className="grid gap-3 overflow-y-auto p-5 lg:grid-cols-2">
-          <Card title="Sibling capabilities (same area)">
+          <Card title="Sibling capabilities (same process)">
             <ul className="space-y-1 text-[13px]">
-              {repo.processesOf(capability.processAreaId).filter((p) => p.id !== capability.id).slice(0, 12).map((p) => (
-                <li key={p.id}>
-                  <Link to="/capabilities/$capabilityId" params={{ capabilityId: p.id.trim() }} className="flex items-center gap-2 rounded px-1.5 py-1 hover:bg-surface-hover">
-                    <span className="num text-[11px] text-muted-foreground">{p.id.trim()}</span>
-                    <span className="truncate">{p.name}</span>
+              {repo.capabilitiesOf(capability.processId).filter((c) => c.id !== capability.id).slice(0, 12).map((c) => (
+                <li key={c.id}>
+                  <Link to="/capabilities/$capabilityId" params={{ capabilityId: c.id.trim() }} className="flex items-center gap-2 rounded px-1.5 py-1 hover:bg-surface-hover">
+                    <span className="num text-[11px] text-muted-foreground">{c.id.trim()}</span>
+                    <span className="truncate">{c.name}</span>
                   </Link>
                 </li>
               ))}
@@ -180,7 +183,7 @@ function CapabilityDetail() {
           <Card title="Recent activity">
             <ul className="space-y-2 text-[13px]">
               {[
-                { who: capability.owner, what: "Updated capability metadata", when: "2 days ago" },
+                { who: proc?.owner ?? "—", what: "Updated capability metadata", when: "2 days ago" },
                 { who: "Anna Janssen", what: "Linked template to capability", when: "1 week ago" },
                 { who: "System", what: "Capability imported from BPML extract", when: "3 months ago" },
               ].map((e, i) => (

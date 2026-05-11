@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { repo, type ProcessCapability } from "@/data/repo";
+import { repo, type Capability } from "@/data/repo";
 import { useMemo, useState } from "react";
 import { DataGrid, type ColumnDef } from "@/components/enterprise/DataGrid";
 import { FilterBar, FilterChip } from "@/components/enterprise/FilterBar";
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/capabilities/")({
   head: () => ({
     meta: [
       { title: "Capabilities — BPML Governance" },
-      { name: "description", content: "Browse and govern SAP process capabilities across all process domains." },
+      { name: "description", content: "Browse and govern SAP capability leaves across all process domains." },
     ],
   }),
   component: CapabilitiesIndex,
@@ -29,21 +29,21 @@ function CapabilitiesIndex() {
   const canEdit = ROLE_PERMS[useUIStore((s) => s.currentRole)].canEdit;
 
   const data = useMemo(() => {
-    const all = repo.processes();
-    return all.filter((p) => {
-      if (domain !== "__all" && p.processDomainId.trim() !== domain) return false;
-      if (status !== "__all" && p.status !== status) return false;
-      if (q && !p.id.toLowerCase().includes(q.toLowerCase()) && !p.name.toLowerCase().includes(q.toLowerCase())) return false;
+    const all = repo.capabilities();
+    return all.filter((c) => {
+      if (domain !== "__all" && c.processDomainId.trim() !== domain) return false;
+      if (status !== "__all" && c.status !== status) return false;
+      if (q && !c.id.toLowerCase().includes(q.toLowerCase()) && !c.name.toLowerCase().includes(q.toLowerCase())) return false;
       return true;
     });
   }, [q, domain, status, version]);
 
-  const columns: ColumnDef<ProcessCapability>[] = useMemo(
+  const columns: ColumnDef<Capability>[] = useMemo(
     () => [
       {
-        header: "ID",
+        header: "Capability ID",
         accessorKey: "id",
-        size: 130,
+        size: 150,
         cell: (i) => {
           const id = (i.getValue() as string).trim();
           return (
@@ -56,35 +56,34 @@ function CapabilitiesIndex() {
       },
       { header: "Name", accessorKey: "name" },
       {
-        header: "Domain",
-        accessorFn: (r) => repo.domain(r.processDomainId)?.name ?? r.processDomainId,
-        size: 220,
+        header: "Process",
+        accessorFn: (r) => repo.process(r.processId)?.name ?? r.processId,
+        size: 240,
         cell: (i) => <span className="truncate text-muted-foreground">{i.getValue() as string}</span>,
       },
       {
         header: "Area",
         accessorFn: (r) => repo.area(r.processAreaId)?.name ?? r.processAreaId,
-        size: 220,
+        size: 200,
         cell: (i) => <span className="truncate text-muted-foreground">{i.getValue() as string}</span>,
       },
-      { header: "Owner", accessorKey: "owner", size: 150 },
       { header: "Templates", accessorKey: "templateCount", size: 100, cell: (i) => <span className="num">{i.getValue() as number}</span> },
       {
         header: "Status",
         accessorKey: "status",
-        size: 110,
+        size: 130,
         cell: (i) => {
           const v = i.getValue() as string;
           return <StatusBadge value={v} intent={v === "Active" ? "success" : v === "Draft" ? "info" : "warn"} />;
         },
       },
     ],
-    [],
+    [isDraft],
   );
 
   const domainOpts = [
-    { value: "__all", label: "All", count: repo.processes().length },
-    ...repo.domains().map((d) => ({ value: d.id.trim(), label: d.id.trim(), count: repo.areasOf(d.id).reduce((a, x) => a + repo.processesOf(x.id).length, 0) })),
+    { value: "__all", label: "All", count: repo.capabilities().length },
+    ...repo.domains().map((d) => ({ value: d.id.trim(), label: d.id.trim(), count: repo.capabilities().filter((c) => c.processDomainId.trim() === d.id.trim()).length })),
   ];
   const statusOpts = [
     { value: "__all", label: "All" },
@@ -97,7 +96,7 @@ function CapabilitiesIndex() {
     <div className="flex h-full min-h-0 flex-col">
       <PageHeader
         title="Capabilities"
-        subtitle="All process capabilities across the BPML taxonomy."
+        subtitle={`${repo.capabilities().length.toLocaleString()} capability leaves linked to ${repo.processes().length} processes.`}
         breadcrumbs={[{ label: "BPML" }, { label: "Capabilities" }]}
         actions={canEdit ? (
           <Link to="/create" className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-2.5 text-[12.5px] font-medium text-primary-foreground hover:opacity-90">

@@ -17,11 +17,13 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
+import { Route as ProcessesIndexRouteImport } from './routes/processes.index'
 import { Route as CapabilitiesIndexRouteImport } from './routes/capabilities.index'
 import { Route as BusinessTemplatesIndexRouteImport } from './routes/business-templates.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as TemplatesTemplateIdRouteImport } from './routes/templates.$templateId'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
+import { Route as ProcessesProcessIdRouteImport } from './routes/processes.$processId'
 import { Route as CapabilitiesCapabilityIdRouteImport } from './routes/capabilities.$capabilityId'
 import { Route as BusinessTemplatesBtIdRouteImport } from './routes/business-templates.$btId'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -69,6 +71,11 @@ const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
   path: '/projects/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProcessesIndexRoute = ProcessesIndexRouteImport.update({
+  id: '/processes/',
+  path: '/processes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CapabilitiesIndexRoute = CapabilitiesIndexRouteImport.update({
   id: '/capabilities/',
   path: '/capabilities/',
@@ -92,6 +99,11 @@ const TemplatesTemplateIdRoute = TemplatesTemplateIdRouteImport.update({
 const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
   id: '/projects/$projectId',
   path: '/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProcessesProcessIdRoute = ProcessesProcessIdRouteImport.update({
+  id: '/processes/$processId',
+  path: '/processes/$processId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CapabilitiesCapabilityIdRoute =
@@ -139,11 +151,13 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/business-templates/$btId': typeof BusinessTemplatesBtIdRoute
   '/capabilities/$capabilityId': typeof CapabilitiesCapabilityIdRoute
+  '/processes/$processId': typeof ProcessesProcessIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/admin/': typeof AdminIndexRoute
   '/business-templates/': typeof BusinessTemplatesIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
+  '/processes/': typeof ProcessesIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
 }
@@ -159,11 +173,13 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/business-templates/$btId': typeof BusinessTemplatesBtIdRoute
   '/capabilities/$capabilityId': typeof CapabilitiesCapabilityIdRoute
+  '/processes/$processId': typeof ProcessesProcessIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/admin': typeof AdminIndexRoute
   '/business-templates': typeof BusinessTemplatesIndexRoute
   '/capabilities': typeof CapabilitiesIndexRoute
+  '/processes': typeof ProcessesIndexRoute
   '/projects': typeof ProjectsIndexRoute
   '/templates': typeof TemplatesIndexRoute
 }
@@ -181,11 +197,13 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/business-templates/$btId': typeof BusinessTemplatesBtIdRoute
   '/capabilities/$capabilityId': typeof CapabilitiesCapabilityIdRoute
+  '/processes/$processId': typeof ProcessesProcessIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/admin/': typeof AdminIndexRoute
   '/business-templates/': typeof BusinessTemplatesIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
+  '/processes/': typeof ProcessesIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
 }
@@ -204,11 +222,13 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/business-templates/$btId'
     | '/capabilities/$capabilityId'
+    | '/processes/$processId'
     | '/projects/$projectId'
     | '/templates/$templateId'
     | '/admin/'
     | '/business-templates/'
     | '/capabilities/'
+    | '/processes/'
     | '/projects/'
     | '/templates/'
   fileRoutesByTo: FileRoutesByTo
@@ -224,11 +244,13 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/business-templates/$btId'
     | '/capabilities/$capabilityId'
+    | '/processes/$processId'
     | '/projects/$projectId'
     | '/templates/$templateId'
     | '/admin'
     | '/business-templates'
     | '/capabilities'
+    | '/processes'
     | '/projects'
     | '/templates'
   id:
@@ -245,11 +267,13 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/business-templates/$btId'
     | '/capabilities/$capabilityId'
+    | '/processes/$processId'
     | '/projects/$projectId'
     | '/templates/$templateId'
     | '/admin/'
     | '/business-templates/'
     | '/capabilities/'
+    | '/processes/'
     | '/projects/'
     | '/templates/'
   fileRoutesById: FileRoutesById
@@ -263,10 +287,12 @@ export interface RootRouteChildren {
   StepsRoute: typeof StepsRoute
   BusinessTemplatesBtIdRoute: typeof BusinessTemplatesBtIdRoute
   CapabilitiesCapabilityIdRoute: typeof CapabilitiesCapabilityIdRoute
+  ProcessesProcessIdRoute: typeof ProcessesProcessIdRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
   TemplatesTemplateIdRoute: typeof TemplatesTemplateIdRoute
   BusinessTemplatesIndexRoute: typeof BusinessTemplatesIndexRoute
   CapabilitiesIndexRoute: typeof CapabilitiesIndexRoute
+  ProcessesIndexRoute: typeof ProcessesIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
 }
@@ -329,6 +355,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/processes/': {
+      id: '/processes/'
+      path: '/processes'
+      fullPath: '/processes/'
+      preLoaderRoute: typeof ProcessesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/capabilities/': {
       id: '/capabilities/'
       path: '/capabilities'
@@ -362,6 +395,13 @@ declare module '@tanstack/react-router' {
       path: '/projects/$projectId'
       fullPath: '/projects/$projectId'
       preLoaderRoute: typeof ProjectsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/processes/$processId': {
+      id: '/processes/$processId'
+      path: '/processes/$processId'
+      fullPath: '/processes/$processId'
+      preLoaderRoute: typeof ProcessesProcessIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/capabilities/$capabilityId': {
@@ -436,10 +476,12 @@ const rootRouteChildren: RootRouteChildren = {
   StepsRoute: StepsRoute,
   BusinessTemplatesBtIdRoute: BusinessTemplatesBtIdRoute,
   CapabilitiesCapabilityIdRoute: CapabilitiesCapabilityIdRoute,
+  ProcessesProcessIdRoute: ProcessesProcessIdRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
   TemplatesTemplateIdRoute: TemplatesTemplateIdRoute,
   BusinessTemplatesIndexRoute: BusinessTemplatesIndexRoute,
   CapabilitiesIndexRoute: CapabilitiesIndexRoute,
+  ProcessesIndexRoute: ProcessesIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
 }

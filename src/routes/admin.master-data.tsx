@@ -1,16 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { repo } from "@/data/repo";
-import { btLevels, geoScopes, productGroups, itDomainList, itServiceList } from "@/data/bpml.generated";
+import { productGroups, businessTemplateLevels, geographicalScope } from "@/data/bpml.generated";
 
 export const Route = createFileRoute("/admin/master-data")({ component: MasterDataPage });
 
 function MasterDataPage() {
   const groups: { title: string; values: string[] }[] = [
     { title: "Product Groups", values: productGroups },
-    { title: "Business Template Levels", values: btLevels },
-    { title: "Geographical Scope", values: geoScopes },
-    { title: "IT Domains", values: itDomainList },
-    { title: "IT Services", values: itServiceList },
+    { title: "Business Template Levels", values: businessTemplateLevels },
+    { title: "Geographical Scope", values: geographicalScope },
     { title: "Process Domains", values: repo.domains().map((d) => d.name) },
     { title: "Business Entities", values: repo.entities().map((e) => e.id) },
   ];
