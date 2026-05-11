@@ -54,7 +54,7 @@ function TemplatesIndex() {
       },
       { header: "Name", accessorKey: "name" },
       { header: "Steps", accessorKey: "stepCount", size: 80, cell: (i) => <span className="num">{i.getValue() as number}</span> },
-      { header: "Capabilities", accessorFn: (r) => r.processIds.length, size: 110, cell: (i) => <span className="num">{i.getValue() as number}</span> },
+      { header: "Capabilities", accessorFn: (r) => r.capabilityIds.length, size: 110, cell: (i) => <span className="num">{i.getValue() as number}</span> },
       { header: "Standardization", accessorKey: "standard", size: 170, cell: (i) => <StandardizationBadge value={i.getValue() as string} /> },
     ],
     [],

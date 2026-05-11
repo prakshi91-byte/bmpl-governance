@@ -31,7 +31,7 @@ function TemplateDetail() {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Steps");
   const [q, setQ] = useState("");
   const steps = repo.stepsOf(template.id);
-  const caps = repo.processesOfTemplate(template.id);
+  const caps = repo.capabilitiesOfTemplate(template.id);
   const deployments = repo
     .projects()
     .filter((p) => repo.scopeOfProject(p.id).some((r) => r.templateId === template.id));
