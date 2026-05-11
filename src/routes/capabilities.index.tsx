@@ -74,7 +74,7 @@ function CapabilitiesIndex() {
         size: 130,
         cell: (i) => {
           const v = i.getValue() as string;
-          return <StatusBadge value={v} intent={v === "Active" ? "success" : v === "Draft" ? "info" : "warn"} />;
+          return <StatusBadge value={v} intent={v === "Active" ? "success" : v === "Draft" ? "info" : "neutral"} />;
         },
       },
     ],
