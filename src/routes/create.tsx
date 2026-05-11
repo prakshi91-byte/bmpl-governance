@@ -280,7 +280,7 @@ function TemplateForm() {
           <div className="mb-2 flex flex-wrap gap-1">
             {selectedCaps.length === 0 && <span className="text-[12px] text-muted-foreground">No capabilities linked yet.</span>}
             {selectedCaps.map((id) => {
-              const c = repo.process(id);
+              const c = repo.capability(id);
               return (
                 <span key={id} className="inline-flex items-center gap-1 rounded bg-primary-soft px-1.5 py-0.5 text-[11.5px] text-primary">
                   <span className="num">{id.trim()}</span>
