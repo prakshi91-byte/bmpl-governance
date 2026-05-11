@@ -95,7 +95,7 @@ function CapabilityDetail() {
             <span>Domain <span className="text-foreground">{domain?.name ?? "—"}</span></span>
             <span>Area <span className="text-foreground">{area?.name ?? "—"}</span></span>
             <span>Process <span className="text-foreground">{proc?.name ?? "—"}</span></span>
-            <StatusBadge value={capability.status} intent={capability.status === "Active" ? "success" : "info"} />
+            <StatusBadge value={capability.status} intent={capability.status === "Active" ? "success" : "neutral"} />
           </>
         }
       />
@@ -120,7 +120,7 @@ function CapabilityDetail() {
           <Card title="Identification">
             <Row label="Capability ID" value={<span className="num">{capability.id.trim()}</span>} />
             <Row label="Name" value={capability.name} />
-            <Row label="Status" value={<StatusBadge value={capability.status} intent="success" />} />
+            <Row label="Status" value={<StatusBadge value={capability.status} intent={capability.status === "Active" ? "success" : "neutral"} />} />
           </Card>
           <Card title="Hierarchy">
             <Row label="Process Domain" value={domain?.name ?? "—"} />

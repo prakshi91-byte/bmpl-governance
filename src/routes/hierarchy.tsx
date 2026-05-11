@@ -82,7 +82,7 @@ function HierarchyPage() {
       { header: "Templates", accessorKey: "templateCount", size: 100,
         cell: (info) => <span className="num">{info.getValue() as number}</span> },
       { header: "Status", accessorKey: "status", size: 110,
-        cell: (info) => <StatusBadge value={info.getValue() as string} intent="success" /> },
+        cell: (info) => { const v = info.getValue() as string; return <StatusBadge value={v} intent={v === "Active" ? "success" : "neutral"} />; } },
     ],
     [],
   );
@@ -249,7 +249,7 @@ function CapabilityPanel({ capability }: { capability: Capability }) {
         <Meta label="Domain" value={domain?.name ?? "—"} />
         <Meta label="Area" value={area?.name ?? "—"} />
         <Meta label="Process" value={proc?.name ?? "—"} />
-        <Meta label="Status" value={<StatusBadge value={capability.status} intent="success" />} />
+        <Meta label="Status" value={<StatusBadge value={capability.status} intent={capability.status === "Active" ? "success" : "neutral"} />} />
       </Section>
       <Section title={`Templates (${templates.length})`} action={<Link to="/templates" className="text-[11.5px] text-primary hover:underline">View all</Link>}>
         <div className="space-y-1">

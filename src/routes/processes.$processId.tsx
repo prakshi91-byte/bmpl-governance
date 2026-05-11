@@ -35,7 +35,7 @@ function ProcessDetail() {
       { header: "Capability ID", accessorKey: "id", size: 150, cell: (i) => <span className="num font-medium text-primary">{(i.getValue() as string).trim()}</span> },
       { header: "Name", accessorKey: "name" },
       { header: "Templates", accessorKey: "templateCount", size: 100, cell: (i) => <span className="num">{i.getValue() as number}</span> },
-      { header: "Status", accessorKey: "status", size: 130, cell: (i) => <StatusBadge value={i.getValue() as string} intent="success" /> },
+      { header: "Status", accessorKey: "status", size: 130, cell: (i) => { const v = i.getValue() as string; return <StatusBadge value={v} intent={v === "Active" ? "success" : "neutral"} />; } },
     ],
     [],
   );
@@ -73,7 +73,7 @@ function ProcessDetail() {
             <span>Domain <span className="text-foreground">{domain?.name ?? "—"}</span></span>
             <span>Area <Link to="/hierarchy" search={{ domain: process.processDomainId, area: process.processAreaId } as any} className="text-foreground hover:underline">{area?.name ?? "—"}</Link></span>
             <span>Owner <span className="text-foreground">{process.owner}</span></span>
-            <StatusBadge value={process.status} intent="success" />
+            <StatusBadge value={process.status} intent={process.status === "Active" ? "success" : "neutral"} />
           </>
         }
       />
