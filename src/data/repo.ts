@@ -2,6 +2,7 @@ import {
   processDomains,
   processAreas,
   processes,
+  capabilities,
   templates,
   templateSteps,
   capabilityTemplateLinks,
@@ -13,11 +14,15 @@ import {
   entities,
   users,
   roles,
+  productGroups,
+  businessTemplateLevels,
+  geographicalScope,
 } from "./bpml.generated";
 import type {
   ProcessDomain,
   ProcessArea,
-  ProcessCapability,
+  Process,
+  Capability,
   Template,
   TemplateStep,
   BusinessTemplate,
@@ -36,7 +41,8 @@ import type {
 export type {
   ProcessDomain,
   ProcessArea,
-  ProcessCapability,
+  Process,
+  Capability,
   Template,
   TemplateStep,
   BusinessTemplate,
@@ -52,113 +58,96 @@ export type {
   CoverageState,
 };
 
-// Indexed lookups built once
-const domainById = new Map(processDomains.map((d) => [d.id.trim(), d]));
-const areaById = new Map(processAreas.map((a) => [a.id.trim(), a]));
-const processById = new Map(processes.map((p) => [p.id.trim(), p]));
+// ---------- Indexed lookups ----------
+const trim = (v: string) => v.trim();
+const domainById = new Map(processDomains.map((d) => [trim(d.id), d]));
+const areaById = new Map(processAreas.map((a) => [trim(a.id), a]));
+const processById = new Map(processes.map((p) => [trim(p.id), p]));
+const capabilityById = new Map(capabilities.map((c) => [trim(c.id), c]));
 const templateById = new Map(templates.map((t) => [t.id, t]));
-const stepsByTemplate = new Map<number, TemplateStep[]>();
-for (const s of templateSteps) {
-  const arr = stepsByTemplate.get(s.templateId) ?? [];
-  arr.push(s);
-  stepsByTemplate.set(s.templateId, arr);
-}
+
 const areasByDomain = new Map<string, ProcessArea[]>();
-for (const a of processAreas) {
-  const k = a.processDomainId.trim();
-  const arr = areasByDomain.get(k) ?? [];
-  arr.push(a);
-  areasByDomain.set(k, arr);
-}
-const procsByArea = new Map<string, ProcessCapability[]>();
-for (const p of processes) {
-  const k = p.processAreaId.trim();
-  const arr = procsByArea.get(k) ?? [];
-  arr.push(p);
-  procsByArea.set(k, arr);
-}
-const templatesByProcess = new Map<string, number[]>();
-for (const link of capabilityTemplateLinks) {
-  const k = link.processId.trim();
-  const arr = templatesByProcess.get(k) ?? [];
-  arr.push(link.templateId);
-  templatesByProcess.set(k, arr);
-}
-const processesByTemplate = new Map<number, string[]>();
-for (const link of capabilityTemplateLinks) {
-  const arr = processesByTemplate.get(link.templateId) ?? [];
-  arr.push(link.processId.trim());
-  processesByTemplate.set(link.templateId, arr);
-}
-const btScopeByBT = new Map<string, BusinessTemplateScopeRow[]>();
-for (const row of businessTemplateScope) {
-  const arr = btScopeByBT.get(row.businessTemplateId) ?? [];
-  arr.push(row);
-  btScopeByBT.set(row.businessTemplateId, arr);
-}
-const projectScopeByProject = new Map<string, ProjectScopeRow[]>();
-for (const row of projectScope) {
-  const arr = projectScopeByProject.get(row.projectId) ?? [];
-  arr.push(row);
-  projectScopeByProject.set(row.projectId, arr);
-}
-const coverageByArea = new Map<string, CoverageCell[]>();
-for (const c of coverageCells) {
-  const arr = coverageByArea.get(c.processAreaId.trim()) ?? [];
-  arr.push(c);
-  coverageByArea.set(c.processAreaId.trim(), arr);
+for (const a of processAreas) push(areasByDomain, trim(a.processDomainId), a);
+
+const processesByArea = new Map<string, Process[]>();
+for (const p of processes) push(processesByArea, trim(p.processAreaId), p);
+
+const capabilitiesByProcess = new Map<string, Capability[]>();
+const capabilitiesByArea = new Map<string, Capability[]>();
+for (const c of capabilities) {
+  push(capabilitiesByProcess, trim(c.processId), c);
+  push(capabilitiesByArea, trim(c.processAreaId), c);
 }
 
-// Mutators — keep arrays + lookup maps in sync when drafts are added at runtime.
+const templatesByCapability = new Map<string, number[]>();
+const capabilitiesByTemplate = new Map<number, string[]>();
+for (const link of capabilityTemplateLinks) {
+  push(templatesByCapability, trim(link.capabilityId), link.templateId);
+  push(capabilitiesByTemplate, link.templateId, trim(link.capabilityId));
+}
+
+const stepsByTemplate = new Map<number, TemplateStep[]>();
+for (const s of templateSteps) push(stepsByTemplate, s.templateId, s);
+
+const btScopeByBT = new Map<string, BusinessTemplateScopeRow[]>();
+for (const r of businessTemplateScope) push(btScopeByBT, r.businessTemplateId, r);
+
+const projectScopeByProject = new Map<string, ProjectScopeRow[]>();
+for (const r of projectScope) push(projectScopeByProject, r.projectId, r);
+
+const coverageByArea = new Map<string, CoverageCell[]>();
+for (const c of coverageCells) push(coverageByArea, trim(c.processAreaId), c);
+
+function push<K, V>(m: Map<K, V[]>, k: K, v: V) {
+  const arr = m.get(k) ?? [];
+  arr.push(v);
+  m.set(k, arr);
+}
+
+// ---------- Mutators (drafts) ----------
 export function addAreaToRepo(a: ProcessArea) {
-  if (areaById.has(a.id.trim())) return;
+  if (areaById.has(trim(a.id))) return;
   processAreas.push(a);
-  areaById.set(a.id.trim(), a);
-  const arr = areasByDomain.get(a.processDomainId.trim()) ?? [];
-  arr.push(a);
-  areasByDomain.set(a.processDomainId.trim(), arr);
+  areaById.set(trim(a.id), a);
+  push(areasByDomain, trim(a.processDomainId), a);
 }
-export function addCapabilityToRepo(c: ProcessCapability) {
-  if (processById.has(c.id.trim())) return;
-  processes.push(c);
-  processById.set(c.id.trim(), c);
-  const arr = procsByArea.get(c.processAreaId.trim()) ?? [];
-  arr.push(c);
-  procsByArea.set(c.processAreaId.trim(), arr);
+export function addProcessToRepo(p: Process) {
+  if (processById.has(trim(p.id))) return;
+  processes.push(p);
+  processById.set(trim(p.id), p);
+  push(processesByArea, trim(p.processAreaId), p);
 }
-export function addTemplateToRepo(
-  t: Template,
-  processIds: string[],
-  steps: TemplateStep[],
-) {
+export function addCapabilityToRepo(c: Capability) {
+  if (capabilityById.has(trim(c.id))) return;
+  capabilities.push(c);
+  capabilityById.set(trim(c.id), c);
+  push(capabilitiesByProcess, trim(c.processId), c);
+  push(capabilitiesByArea, trim(c.processAreaId), c);
+  const proc = processById.get(trim(c.processId));
+  if (proc) proc.capabilityCount = (proc.capabilityCount ?? 0) + 1;
+}
+export function addTemplateToRepo(t: Template, capabilityIds: string[], steps: TemplateStep[]) {
   if (!templateById.has(t.id)) {
     templates.push(t);
     templateById.set(t.id, t);
   }
-  for (const pid of processIds) {
-    const k = pid.trim();
-    if (!capabilityTemplateLinks.find((l) => l.templateId === t.id && l.processId.trim() === k)) {
-      capabilityTemplateLinks.push({ templateId: t.id, processId: k });
+  for (const cid of capabilityIds) {
+    const k = trim(cid);
+    if (!capabilityTemplateLinks.find((l) => l.templateId === t.id && trim(l.capabilityId) === k)) {
+      capabilityTemplateLinks.push({ templateId: t.id, capabilityId: k });
     }
-    const a1 = templatesByProcess.get(k) ?? [];
-    if (!a1.includes(t.id)) {
-      a1.push(t.id);
-      templatesByProcess.set(k, a1);
-    }
-    const a2 = processesByTemplate.get(t.id) ?? [];
-    if (!a2.includes(k)) {
-      a2.push(k);
-      processesByTemplate.set(t.id, a2);
-    }
-    // bump capability templateCount for display
-    const cap = processById.get(k);
+    const a1 = templatesByCapability.get(k) ?? [];
+    if (!a1.includes(t.id)) { a1.push(t.id); templatesByCapability.set(k, a1); }
+    const a2 = capabilitiesByTemplate.get(t.id) ?? [];
+    if (!a2.includes(k)) { a2.push(k); capabilitiesByTemplate.set(t.id, a2); }
+    const cap = capabilityById.get(k);
     if (cap) cap.templateCount = (cap.templateCount ?? 0) + 1;
+    const proc = cap ? processById.get(trim(cap.processId)) : undefined;
+    if (proc) proc.templateCount = (proc.templateCount ?? 0) + 1;
   }
   for (const s of steps) {
     templateSteps.push(s);
-    const arr = stepsByTemplate.get(s.templateId) ?? [];
-    arr.push(s);
-    stepsByTemplate.set(s.templateId, arr);
+    push(stepsByTemplate, s.templateId, s);
   }
 }
 
@@ -168,10 +157,12 @@ export function nextTemplateId(): number {
   return max + 1;
 }
 
+// ---------- Public API ----------
 export const repo = {
   domains: () => processDomains,
   areas: () => processAreas,
   processes: () => processes,
+  capabilities: () => capabilities,
   templates: () => templates,
   steps: () => templateSteps,
   businessTemplates: () => businessTemplates,
@@ -179,22 +170,28 @@ export const repo = {
   entities: () => entities,
   users: () => users,
   roles: () => roles,
+  productGroups: () => productGroups,
+  businessTemplateLevels: () => businessTemplateLevels,
+  geographicalScope: () => geographicalScope,
 
-  domain: (id: string) => domainById.get(id.trim()),
-  area: (id: string) => areaById.get(id.trim()),
-  process: (id: string) => processById.get(id.trim()),
+  domain: (id: string) => domainById.get(trim(id)),
+  area: (id: string) => areaById.get(trim(id)),
+  process: (id: string) => processById.get(trim(id)),
+  capability: (id: string) => capabilityById.get(trim(id)),
   template: (id: number) => templateById.get(id),
 
-  areasOf: (domainId: string) => areasByDomain.get(domainId.trim()) ?? [],
-  processesOf: (areaId: string) => procsByArea.get(areaId.trim()) ?? [],
-  templatesOf: (processId: string): Template[] =>
-    (templatesByProcess.get(processId.trim()) ?? [])
+  areasOf: (domainId: string) => areasByDomain.get(trim(domainId)) ?? [],
+  processesOf: (areaId: string) => processesByArea.get(trim(areaId)) ?? [],
+  capabilitiesOf: (processId: string) => capabilitiesByProcess.get(trim(processId)) ?? [],
+  capabilitiesOfArea: (areaId: string) => capabilitiesByArea.get(trim(areaId)) ?? [],
+  templatesOf: (capabilityId: string): Template[] =>
+    (templatesByCapability.get(trim(capabilityId)) ?? [])
       .map((id) => templateById.get(id))
       .filter((t): t is Template => Boolean(t)),
-  processesOfTemplate: (templateId: number): ProcessCapability[] =>
-    (processesByTemplate.get(templateId) ?? [])
-      .map((pid) => processById.get(pid))
-      .filter((p): p is ProcessCapability => Boolean(p)),
+  capabilitiesOfTemplate: (templateId: number): Capability[] =>
+    (capabilitiesByTemplate.get(templateId) ?? [])
+      .map((cid) => capabilityById.get(cid))
+      .filter((c): c is Capability => Boolean(c)),
   stepsOf: (templateId: number) =>
     (stepsByTemplate.get(templateId) ?? []).slice().sort((a, b) => a.seq - b.seq),
   businessTemplate: (id: string) => businessTemplates.find((b) => b.id === id),
@@ -204,24 +201,27 @@ export const repo = {
       .filter((t): t is Template => Boolean(t)),
   project: (id: string) => projects.find((p) => p.id === id),
   scopeOfProject: (projectId: string) => projectScopeByProject.get(projectId) ?? [],
-  coverageOfArea: (areaId: string) => coverageByArea.get(areaId.trim()) ?? [],
+  coverageOfArea: (areaId: string) => coverageByArea.get(trim(areaId)) ?? [],
 
   search: (query: string) => {
     const q = query.toLowerCase().trim();
-    if (!q) return { domains: [], areas: [], processes: [], templates: [] };
-    const limit = 8;
+    if (!q) return { domains: [], areas: [], processes: [], capabilities: [], templates: [] };
+    const limit = 6;
+    const match = (s: string) => s.toLowerCase().includes(q);
     return {
-      domains: processDomains.filter((d) => d.id.toLowerCase().includes(q) || d.name.toLowerCase().includes(q)).slice(0, limit),
-      areas: processAreas.filter((a) => a.id.toLowerCase().includes(q) || a.name.toLowerCase().includes(q)).slice(0, limit),
-      processes: processes.filter((p) => p.id.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)).slice(0, limit),
-      templates: templates.filter((t) => String(t.id).includes(q) || t.name.toLowerCase().includes(q)).slice(0, limit),
+      domains: processDomains.filter((d) => match(d.id) || match(d.name)).slice(0, limit),
+      areas: processAreas.filter((a) => match(a.id) || match(a.name)).slice(0, limit),
+      processes: processes.filter((p) => match(p.id) || match(p.name)).slice(0, limit),
+      capabilities: capabilities.filter((c) => match(c.id) || match(c.name)).slice(0, limit),
+      templates: templates.filter((t) => String(t.id).includes(q) || match(t.name)).slice(0, limit),
     };
   },
 
   stats: () => ({
     domains: processDomains.length,
     areas: processAreas.length,
-    capabilities: processes.length,
+    processes: processes.length,
+    capabilities: capabilities.length,
     templates: templates.length,
     steps: templateSteps.length,
     businessTemplates: businessTemplates.length,
