@@ -99,6 +99,11 @@ function CapabilitiesIndex() {
         title="Capabilities"
         subtitle="All process capabilities across the BPML taxonomy."
         breadcrumbs={[{ label: "BPML" }, { label: "Capabilities" }]}
+        actions={canEdit ? (
+          <Link to="/create" className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-2.5 text-[12.5px] font-medium text-primary-foreground hover:opacity-90">
+            <Plus className="size-3.5" /> New capability
+          </Link>
+        ) : null}
       />
       <FilterBar search={q} onSearchChange={setQ} placeholder="Search capabilities…">
         <FilterChip label="Domain" value={domain} options={domainOpts} onChange={setDomain} />
