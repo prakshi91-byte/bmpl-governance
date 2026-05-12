@@ -69,6 +69,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const setRightPanelOpen = useUIStore((s) => s.setRightPanelOpen);
   const role = useUIStore((s) => s.currentRole);
   const setRole = useUIStore((s) => s.setCurrentRole);
+  const theme = useUIStore((s) => s.theme);
+  const toggleTheme = useUIStore((s) => s.toggleTheme);
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === "dark") root.classList.add("dark");
+    else root.classList.remove("dark");
+  }, [theme]);
 
   const [rightContent, setRightContent] = useState<ReactNode | null>(null);
   const ctx = useMemo(() => ({ content: rightContent, setContent: setRightContent }), [rightContent]);
