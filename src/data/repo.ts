@@ -157,6 +157,50 @@ export function nextTemplateId(): number {
   return max + 1;
 }
 
+export function setProjectBusinessTemplateScope(projectId: string, businessTemplateIds: string[]) {
+  const selected = new Set(businessTemplateIds);
+  for (let i = projectScope.length - 1; i >= 0; i -= 1) {
+    const row = projectScope[i];
+    if (row.projectId === projectId && row.businessTemplateId) {
+      projectScope.splice(i, 1);
+    }
+  }
+
+  const rows = projectScopeByProject.get(projectId) ?? [];
+  projectScopeByProject.set(
+    projectId,
+    rows.filter((row) => !row.businessTemplateId),
+  );
+
+  for (const businessTemplateId of selected) {
+    const row: ProjectScopeRow = { projectId, businessTemplateId, templateId: null };
+    projectScope.push(row);
+    push(projectScopeByProject, projectId, row);
+  }
+}
+
+export function setProjectScope(projectId: string, businessTemplateIds: string[], templateIds: number[]) {
+  for (let i = projectScope.length - 1; i >= 0; i -= 1) {
+    if (projectScope[i].projectId === projectId) {
+      projectScope.splice(i, 1);
+    }
+  }
+
+  projectScopeByProject.set(projectId, []);
+
+  for (const businessTemplateId of new Set(businessTemplateIds)) {
+    const row: ProjectScopeRow = { projectId, businessTemplateId, templateId: null };
+    projectScope.push(row);
+    push(projectScopeByProject, projectId, row);
+  }
+
+  for (const templateId of new Set(templateIds)) {
+    const row: ProjectScopeRow = { projectId, businessTemplateId: null, templateId };
+    projectScope.push(row);
+    push(projectScopeByProject, projectId, row);
+  }
+}
+
 // ---------- Public API ----------
 export const repo = {
   domains: () => processDomains,
@@ -201,6 +245,8 @@ export const repo = {
       .filter((t): t is Template => Boolean(t)),
   project: (id: string) => projects.find((p) => p.id === id),
   scopeOfProject: (projectId: string) => projectScopeByProject.get(projectId) ?? [],
+  setProjectBusinessTemplateScope,
+  setProjectScope,
   coverageOfArea: (areaId: string) => coverageByArea.get(trim(areaId)) ?? [],
 
   search: (query: string) => {
