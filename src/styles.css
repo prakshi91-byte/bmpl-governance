@@ -168,6 +168,31 @@
   --border-strong: oklch(1 0 0 / 14%);
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.7 0.13 252);
+
+  --std-global-bg: oklch(0.32 0.06 155);
+  --std-option-bg: oklch(0.32 0.06 252);
+  --std-legacy-bg: oklch(0.34 0.06 85);
+  --std-phaseout-bg: oklch(0.36 0.08 45);
+  --std-retired-bg: oklch(0.28 0.01 260);
+  --std-global: oklch(0.85 0.12 155);
+  --std-option: oklch(0.82 0.12 252);
+  --std-legacy: oklch(0.82 0.11 85);
+  --std-phaseout: oklch(0.82 0.13 45);
+  --std-retired: oklch(0.75 0.01 260);
+
+  --cov-covered: oklch(0.5 0.13 155);
+  --cov-partial: oklch(0.55 0.14 90);
+  --cov-not: oklch(0.55 0.13 35);
+  --cov-na: oklch(0.28 0.01 260);
+
+  --sidebar: oklch(0.18 0.018 260);
+  --sidebar-foreground: oklch(0.96 0.005 250);
+  --sidebar-primary: oklch(0.7 0.13 252);
+  --sidebar-primary-foreground: oklch(0.16 0.02 260);
+  --sidebar-accent: oklch(0.32 0.08 252);
+  --sidebar-accent-foreground: oklch(0.92 0.04 250);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.7 0.13 252);
 }
 
 @layer base {
