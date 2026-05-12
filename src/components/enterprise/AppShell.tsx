@@ -183,11 +183,15 @@ function TopBar({
   setRole,
   rightPanelOpen,
   setRightPanelOpen,
+  theme,
+  toggleTheme,
 }: {
   role: RoleId;
   setRole: (r: RoleId) => void;
   rightPanelOpen: boolean;
   setRightPanelOpen: (v: boolean) => void;
+  theme: "light" | "dark";
+  toggleTheme: () => void;
 }) {
   const [q, setQ] = useState("");
   const results = useMemo(() => (q.trim() ? repo.search(q) : null), [q]);
