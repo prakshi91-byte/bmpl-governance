@@ -11,12 +11,14 @@ import {
   Map as MapIcon,
   Network,
   Package,
+  Moon,
   PanelRightClose,
   PanelRightOpen,
   Search,
   Settings,
   ShieldCheck,
   Sparkles,
+  Sun,
   Workflow,
 } from "lucide-react";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
@@ -67,6 +69,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const setRightPanelOpen = useUIStore((s) => s.setRightPanelOpen);
   const role = useUIStore((s) => s.currentRole);
   const setRole = useUIStore((s) => s.setCurrentRole);
+  const theme = useUIStore((s) => s.theme);
+  const toggleTheme = useUIStore((s) => s.toggleTheme);
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === "dark") root.classList.add("dark");
+    else root.classList.remove("dark");
+  }, [theme]);
 
   const [rightContent, setRightContent] = useState<ReactNode | null>(null);
   const ctx = useMemo(() => ({ content: rightContent, setContent: setRightContent }), [rightContent]);
@@ -154,7 +163,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {/* MAIN COLUMN */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <TopBar role={role} setRole={setRole} rightPanelOpen={rightPanelOpen} setRightPanelOpen={setRightPanelOpen} />
+          <TopBar role={role} setRole={setRole} rightPanelOpen={rightPanelOpen} setRightPanelOpen={setRightPanelOpen} theme={theme} toggleTheme={toggleTheme} />
           <div className="flex min-h-0 flex-1">
             <main className="flex min-w-0 flex-1 flex-col overflow-hidden">{children}</main>
             {rightPanelOpen && rightContent && (
@@ -174,11 +183,15 @@ function TopBar({
   setRole,
   rightPanelOpen,
   setRightPanelOpen,
+  theme,
+  toggleTheme,
 }: {
   role: RoleId;
   setRole: (r: RoleId) => void;
   rightPanelOpen: boolean;
   setRightPanelOpen: (v: boolean) => void;
+  theme: "light" | "dark";
+  toggleTheme: () => void;
 }) {
   const [q, setQ] = useState("");
   const results = useMemo(() => (q.trim() ? repo.search(q) : null), [q]);
@@ -251,6 +264,14 @@ function TopBar({
             ))}
           </select>
         </label>
+        <button
+          type="button"
+          onClick={toggleTheme}
+          title={theme === "dark" ? "Switch to light" : "Switch to dark"}
+          className="inline-flex h-8 items-center justify-center rounded-md border border-border bg-surface px-2 text-muted-foreground hover:bg-surface-hover"
+        >
+          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+        </button>
         <button
           type="button"
           onClick={() => setRightPanelOpen(!rightPanelOpen)}

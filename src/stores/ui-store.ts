@@ -10,6 +10,9 @@ interface UIState {
   setCurrentRole: (r: RoleId) => void;
   rightPanelOpen: boolean;
   setRightPanelOpen: (v: boolean) => void;
+  theme: "light" | "dark";
+  toggleTheme: () => void;
+  setTheme: (t: "light" | "dark") => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -22,6 +25,9 @@ export const useUIStore = create<UIState>()(
       setCurrentRole: (r) => set({ currentRole: r }),
       rightPanelOpen: true,
       setRightPanelOpen: (v) => set({ rightPanelOpen: v }),
+      theme: "light",
+      toggleTheme: () => set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
+      setTheme: (t) => set({ theme: t }),
     }),
     { name: "bpml-ui" },
   ),
