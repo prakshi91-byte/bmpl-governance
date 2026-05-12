@@ -266,6 +266,14 @@ function TopBar({
         </label>
         <button
           type="button"
+          onClick={toggleTheme}
+          title={theme === "dark" ? "Switch to light" : "Switch to dark"}
+          className="inline-flex h-8 items-center justify-center rounded-md border border-border bg-surface px-2 text-muted-foreground hover:bg-surface-hover"
+        >
+          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+        </button>
+        <button
+          type="button"
           onClick={() => setRightPanelOpen(!rightPanelOpen)}
           title={rightPanelOpen ? "Hide details" : "Show details"}
           className="hidden h-8 items-center justify-center rounded-md border border-border bg-surface px-2 text-muted-foreground hover:bg-surface-hover lg:inline-flex"
