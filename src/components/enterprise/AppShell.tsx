@@ -163,7 +163,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {/* MAIN COLUMN */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <TopBar role={role} setRole={setRole} rightPanelOpen={rightPanelOpen} setRightPanelOpen={setRightPanelOpen} />
+          <TopBar role={role} setRole={setRole} rightPanelOpen={rightPanelOpen} setRightPanelOpen={setRightPanelOpen} theme={theme} toggleTheme={toggleTheme} />
           <div className="flex min-h-0 flex-1">
             <main className="flex min-w-0 flex-1 flex-col overflow-hidden">{children}</main>
             {rightPanelOpen && rightContent && (
