@@ -4,8 +4,39 @@ import { PageHeader } from "@/components/enterprise/PageHeader";
 import { StandardizationBadge, StatusBadge } from "@/components/enterprise/Badges";
 import { useRightPanel } from "@/components/enterprise/AppShell";
 import { useMemo, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+function templateHierarchy(templateId: number) {
+  const caps = repo.capabilitiesOfTemplate(templateId);
+  const seen = new Set<string>();
+  const crumbs: { domain?: string; area?: string; process?: string; key: string }[] = [];
+  for (const c of caps) {
+    const proc = repo.process(c.processId);
+    const area = proc ? repo.area(proc.processAreaId) : undefined;
+    const domain = area ? repo.domain(area.processDomainId) : undefined;
+    const key = `${domain?.id ?? ""}>${area?.id ?? ""}>${proc?.id ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    crumbs.push({ domain: domain?.name, area: area?.name, process: proc?.name, key });
+  }
+  return crumbs;
+}
+
+function Hierarchy({ templateId }: { templateId: number }) {
+  const crumbs = templateHierarchy(templateId);
+  if (crumbs.length === 0) return null;
+  const first = crumbs[0];
+  const extra = crumbs.length - 1;
+  return (
+    <div className="mt-0.5 flex items-center gap-1 text-[10.5px] text-muted-foreground">
+      {first.domain && <span className="truncate">{first.domain}</span>}
+      {first.area && <><ChevronRight className="size-2.5 shrink-0" /><span className="truncate">{first.area}</span></>}
+      {first.process && <><ChevronRight className="size-2.5 shrink-0" /><span className="truncate">{first.process}</span></>}
+      {extra > 0 && <span className="ml-1 rounded bg-muted px-1 num">+{extra}</span>}
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/business-templates/$btId")({
   loader: ({ params }) => {
@@ -68,11 +99,16 @@ function BTDetail() {
             {filtered.map((t) => {
               const sel = picker.has(t.id);
               return (
-                <button key={t.id} onClick={() => setPicker((p) => { const n = new Set(p); sel ? n.delete(t.id) : n.add(t.id); return n; })} className={cn("flex w-full items-center gap-2 border-b border-border/60 px-3 py-1.5 text-left text-[12.5px] hover:bg-surface-hover", sel && "bg-primary-soft/60")}>
-                  <span className={cn("grid size-4 shrink-0 place-items-center rounded border", sel ? "border-primary bg-primary text-primary-foreground" : "border-border")}>{sel && <Check className="size-3" />}</span>
-                  <span className="num text-[11px] text-muted-foreground">{t.id}</span>
-                  <span className="truncate">{t.name}</span>
-                  <StandardizationBadge value={t.standard} className="ml-auto" />
+              <button key={t.id} onClick={() => setPicker((p) => { const n = new Set(p); sel ? n.delete(t.id) : n.add(t.id); return n; })} className={cn("flex w-full items-start gap-2 border-b border-border/60 px-3 py-1.5 text-left text-[12.5px] hover:bg-surface-hover", sel && "bg-primary-soft/60")}>
+                  <span className={cn("mt-0.5 grid size-4 shrink-0 place-items-center rounded border", sel ? "border-primary bg-primary text-primary-foreground" : "border-border")}>{sel && <Check className="size-3" />}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="num text-[11px] text-muted-foreground">{t.id}</span>
+                      <span className="truncate">{t.name}</span>
+                      <StandardizationBadge value={t.standard} className="ml-auto" />
+                    </div>
+                    <Hierarchy templateId={t.id} />
+                  </div>
                 </button>
               );
             })}
@@ -85,10 +121,15 @@ function BTDetail() {
               const t = repo.template(id);
               if (!t) return null;
               return (
-                <Link key={id} to="/templates/$templateId" params={{ templateId: String(id) }} className="flex items-center gap-2 border-b border-border/60 px-3 py-1.5 text-[12.5px] hover:bg-surface-hover">
-                  <span className="num text-[11px] text-muted-foreground">{t.id}</span>
-                  <span className="truncate">{t.name}</span>
-                  <StandardizationBadge value={t.standard} className="ml-auto" />
+                <Link key={id} to="/templates/$templateId" params={{ templateId: String(id) }} className="flex items-start gap-2 border-b border-border/60 px-3 py-1.5 text-[12.5px] hover:bg-surface-hover">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="num text-[11px] text-muted-foreground">{t.id}</span>
+                      <span className="truncate">{t.name}</span>
+                      <StandardizationBadge value={t.standard} className="ml-auto" />
+                    </div>
+                    <Hierarchy templateId={t.id} />
+                  </div>
                 </Link>
               );
             })}
