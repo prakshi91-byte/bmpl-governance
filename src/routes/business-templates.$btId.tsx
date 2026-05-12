@@ -99,11 +99,16 @@ function BTDetail() {
             {filtered.map((t) => {
               const sel = picker.has(t.id);
               return (
-                <button key={t.id} onClick={() => setPicker((p) => { const n = new Set(p); sel ? n.delete(t.id) : n.add(t.id); return n; })} className={cn("flex w-full items-center gap-2 border-b border-border/60 px-3 py-1.5 text-left text-[12.5px] hover:bg-surface-hover", sel && "bg-primary-soft/60")}>
-                  <span className={cn("grid size-4 shrink-0 place-items-center rounded border", sel ? "border-primary bg-primary text-primary-foreground" : "border-border")}>{sel && <Check className="size-3" />}</span>
-                  <span className="num text-[11px] text-muted-foreground">{t.id}</span>
-                  <span className="truncate">{t.name}</span>
-                  <StandardizationBadge value={t.standard} className="ml-auto" />
+              <button key={t.id} onClick={() => setPicker((p) => { const n = new Set(p); sel ? n.delete(t.id) : n.add(t.id); return n; })} className={cn("flex w-full items-start gap-2 border-b border-border/60 px-3 py-1.5 text-left text-[12.5px] hover:bg-surface-hover", sel && "bg-primary-soft/60")}>
+                  <span className={cn("mt-0.5 grid size-4 shrink-0 place-items-center rounded border", sel ? "border-primary bg-primary text-primary-foreground" : "border-border")}>{sel && <Check className="size-3" />}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="num text-[11px] text-muted-foreground">{t.id}</span>
+                      <span className="truncate">{t.name}</span>
+                      <StandardizationBadge value={t.standard} className="ml-auto" />
+                    </div>
+                    <Hierarchy templateId={t.id} />
+                  </div>
                 </button>
               );
             })}
