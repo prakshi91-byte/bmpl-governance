@@ -11,12 +11,14 @@ import {
   Map as MapIcon,
   Network,
   Package,
+  Moon,
   PanelRightClose,
   PanelRightOpen,
   Search,
   Settings,
   ShieldCheck,
   Sparkles,
+  Sun,
   Workflow,
 } from "lucide-react";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
