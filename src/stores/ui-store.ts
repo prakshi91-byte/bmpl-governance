@@ -10,6 +10,9 @@ interface UIState {
   setCurrentRole: (r: RoleId) => void;
   rightPanelOpen: boolean;
   setRightPanelOpen: (v: boolean) => void;
+  theme: "light" | "dark";
+  toggleTheme: () => void;
+  setTheme: (t: "light" | "dark") => void;
 }
 
 export const useUIStore = create<UIState>()(
