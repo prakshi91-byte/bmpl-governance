@@ -121,10 +121,15 @@ function BTDetail() {
               const t = repo.template(id);
               if (!t) return null;
               return (
-                <Link key={id} to="/templates/$templateId" params={{ templateId: String(id) }} className="flex items-center gap-2 border-b border-border/60 px-3 py-1.5 text-[12.5px] hover:bg-surface-hover">
-                  <span className="num text-[11px] text-muted-foreground">{t.id}</span>
-                  <span className="truncate">{t.name}</span>
-                  <StandardizationBadge value={t.standard} className="ml-auto" />
+                <Link key={id} to="/templates/$templateId" params={{ templateId: String(id) }} className="flex items-start gap-2 border-b border-border/60 px-3 py-1.5 text-[12.5px] hover:bg-surface-hover">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="num text-[11px] text-muted-foreground">{t.id}</span>
+                      <span className="truncate">{t.name}</span>
+                      <StandardizationBadge value={t.standard} className="ml-auto" />
+                    </div>
+                    <Hierarchy templateId={t.id} />
+                  </div>
                 </Link>
               );
             })}
