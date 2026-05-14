@@ -164,6 +164,11 @@ function BTDetail() {
         breadcrumbs={[{ label: "Rollout" }, { label: "Business Templates", to: "/business-templates" }, { label: bt.id }]}
         meta={<><StatusBadge value={bt.level} intent="info" /><span>{bt.productGroup}</span><span>{bt.geoScope}</span><span>{picker.size} templates</span></>}
       />
+      {!isAdmin && (
+        <div className="flex items-center gap-2 border-b border-border bg-surface-2 px-3 py-1.5 text-[12px] text-muted-foreground">
+          <Lock className="size-3.5" /> Read-only — admin role required to create or edit business templates.
+        </div>
+      )}
       <div className="grid min-h-0 flex-1 grid-cols-2 gap-px bg-border">
         <div className="flex min-h-0 flex-col bg-surface">
           <div className="flex h-9 items-center justify-between border-b border-border bg-surface-2 px-3 text-[12px] font-semibold">
