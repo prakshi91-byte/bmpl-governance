@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StepsRouteImport } from './routes/steps'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as HierarchyRouteImport } from './routes/hierarchy'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as CoverageRouteImport } from './routes/coverage'
@@ -34,6 +36,16 @@ import { Route as AdminAssignmentsRouteImport } from './routes/admin.assignments
 const StepsRoute = StepsRouteImport.update({
   id: '/steps',
   path: '/steps',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HierarchyRoute = HierarchyRouteImport.update({
@@ -144,6 +156,8 @@ export interface FileRoutesByFullPath {
   '/coverage': typeof CoverageRoute
   '/create': typeof CreateRoute
   '/hierarchy': typeof HierarchyRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/steps': typeof StepsRoute
   '/admin/assignments': typeof AdminAssignmentsRoute
   '/admin/master-data': typeof AdminMasterDataRoute
@@ -166,6 +180,8 @@ export interface FileRoutesByTo {
   '/coverage': typeof CoverageRoute
   '/create': typeof CreateRoute
   '/hierarchy': typeof HierarchyRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/steps': typeof StepsRoute
   '/admin/assignments': typeof AdminAssignmentsRoute
   '/admin/master-data': typeof AdminMasterDataRoute
@@ -190,6 +206,8 @@ export interface FileRoutesById {
   '/coverage': typeof CoverageRoute
   '/create': typeof CreateRoute
   '/hierarchy': typeof HierarchyRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/steps': typeof StepsRoute
   '/admin/assignments': typeof AdminAssignmentsRoute
   '/admin/master-data': typeof AdminMasterDataRoute
@@ -215,6 +233,8 @@ export interface FileRouteTypes {
     | '/coverage'
     | '/create'
     | '/hierarchy'
+    | '/login'
+    | '/signup'
     | '/steps'
     | '/admin/assignments'
     | '/admin/master-data'
@@ -237,6 +257,8 @@ export interface FileRouteTypes {
     | '/coverage'
     | '/create'
     | '/hierarchy'
+    | '/login'
+    | '/signup'
     | '/steps'
     | '/admin/assignments'
     | '/admin/master-data'
@@ -260,6 +282,8 @@ export interface FileRouteTypes {
     | '/coverage'
     | '/create'
     | '/hierarchy'
+    | '/login'
+    | '/signup'
     | '/steps'
     | '/admin/assignments'
     | '/admin/master-data'
@@ -284,6 +308,8 @@ export interface RootRouteChildren {
   CoverageRoute: typeof CoverageRoute
   CreateRoute: typeof CreateRoute
   HierarchyRoute: typeof HierarchyRoute
+  LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
   StepsRoute: typeof StepsRoute
   BusinessTemplatesBtIdRoute: typeof BusinessTemplatesBtIdRoute
   CapabilitiesCapabilityIdRoute: typeof CapabilitiesCapabilityIdRoute
@@ -304,6 +330,20 @@ declare module '@tanstack/react-router' {
       path: '/steps'
       fullPath: '/steps'
       preLoaderRoute: typeof StepsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hierarchy': {
@@ -473,6 +513,8 @@ const rootRouteChildren: RootRouteChildren = {
   CoverageRoute: CoverageRoute,
   CreateRoute: CreateRoute,
   HierarchyRoute: HierarchyRoute,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
   StepsRoute: StepsRoute,
   BusinessTemplatesBtIdRoute: BusinessTemplatesBtIdRoute,
   CapabilitiesCapabilityIdRoute: CapabilitiesCapabilityIdRoute,
@@ -488,3 +530,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
