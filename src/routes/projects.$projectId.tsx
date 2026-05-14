@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Check, ChevronRight, Download, Layers, Plus, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/projects/$projectId")({
   loader: ({ params }) => {
@@ -544,6 +545,8 @@ function BusinessTemplateScope({
   projectId: string;
   onSaved: () => void;
 }) {
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
   const [editing, setEditing] = useState(false);
   const [query, setQuery] = useState("");
   const [level, setLevel] = useState("__all");
@@ -679,7 +682,9 @@ function BusinessTemplateScope({
             {assigned.length} rollout package{assigned.length === 1 ? "" : "s"} assigned to this project.
           </div>
         </div>
-        {editing ? (
+        {!isAdmin ? (
+          <span className="text-[11.5px] text-muted-foreground">Read-only — admin role required to scope templates.</span>
+        ) : editing ? (
           <div className="flex items-center gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => setEditing(false)}>
               <X className="size-3.5" /> Cancel
