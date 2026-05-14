@@ -113,9 +113,39 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell>
-        <Outlet />
-      </AppShell>
+      <AuthProvider>
+        <AuthGate />
+      </AuthProvider>
     </QueryClientProvider>
+  );
+}
+
+const PUBLIC_PATHS = new Set(["/login", "/signup"]);
+
+function AuthGate() {
+  const { session, loading } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const isPublic = PUBLIC_PATHS.has(pathname);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!session && !isPublic) navigate({ to: "/login" });
+    if (session && isPublic) navigate({ to: "/" });
+  }, [loading, session, isPublic, pathname, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-[13px] text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
+  if (isPublic) return <Outlet />;
+  if (!session) return null;
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
   );
 }
