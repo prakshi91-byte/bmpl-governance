@@ -545,6 +545,8 @@ function BusinessTemplateScope({
   projectId: string;
   onSaved: () => void;
 }) {
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
   const [editing, setEditing] = useState(false);
   const [query, setQuery] = useState("");
   const [level, setLevel] = useState("__all");
