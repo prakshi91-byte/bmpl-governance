@@ -682,7 +682,9 @@ function BusinessTemplateScope({
             {assigned.length} rollout package{assigned.length === 1 ? "" : "s"} assigned to this project.
           </div>
         </div>
-        {editing ? (
+        {!isAdmin ? (
+          <span className="text-[11.5px] text-muted-foreground">Read-only — admin role required to scope templates.</span>
+        ) : editing ? (
           <div className="flex items-center gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => setEditing(false)}>
               <X className="size-3.5" /> Cancel
