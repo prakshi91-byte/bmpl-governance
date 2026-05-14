@@ -480,7 +480,7 @@ function zipFiles(files: { path: string; content: string }[]) {
   const centralDirectoryOffset = offset;
   const centralDirectorySize = centralDirectory.reduce((sum, item) => sum + item.length, 0);
   parts.push(...centralDirectory, createEndOfCentralDirectory(files.length, centralDirectorySize, centralDirectoryOffset));
-  return new Blob(parts);
+  return new Blob(parts as BlobPart[]);
 }
 
 function createZipHeader(signature: number, name: Uint8Array, data: Uint8Array, crc: number, offset: number) {
