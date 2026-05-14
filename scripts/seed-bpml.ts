@@ -67,7 +67,18 @@ async function main() {
   await upsert("business_templates", mapKeys(businessTemplates), "id");
   await upsert("business_template_scope", mapKeys(businessTemplateScope), "business_template_id,template_id");
 
-  await upsert("projects", mapKeys(projects), "id");
+  // Clamp invalid dates (e.g. Feb 30) to month-end
+  const fixDate = (d: string | null | undefined) => {
+    if (!d) return d;
+    const [y, m, day] = d.split("-").map(Number);
+    const last = new Date(y, m, 0).getDate();
+    return `${y}-${String(m).padStart(2, "0")}-${String(Math.min(day, last)).padStart(2, "0")}`;
+  };
+  await upsert(
+    "projects",
+    mapKeys(projects).map((p) => ({ ...p, start_date: fixDate(p.start_date as string), end_date: fixDate(p.end_date as string) })),
+    "id",
+  );
   // project_scope has surrogate uuid PK; just insert
   await upsert("project_scope", mapKeys(projectScope));
   await upsert("coverage_cells", mapKeys(coverageCells), "process_area_id,entity_id");
