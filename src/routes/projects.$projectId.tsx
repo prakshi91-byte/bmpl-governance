@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Check, ChevronRight, Download, Layers, Plus, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/projects/$projectId")({
   loader: ({ params }) => {
