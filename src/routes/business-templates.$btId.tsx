@@ -107,6 +107,8 @@ export const Route = createFileRoute("/business-templates/$btId")({
 
 function BTDetail() {
   const { bt } = Route.useLoaderData();
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
   const assigned = repo.templatesOfBT(bt.id);
   const [picker, setPicker] = useState<Set<number>>(new Set(assigned.map((t) => t.id)));
   const [q, setQ] = useState("");
@@ -122,6 +124,7 @@ function BTDetail() {
     const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); setS(n);
   };
   const setMany = (ids: number[], on: boolean) => {
+    if (!isAdmin) return;
     setPicker((p) => {
       const n = new Set(p);
       for (const id of ids) on ? n.add(id) : n.delete(id);
