@@ -4,12 +4,16 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/enterprise/AppShell";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 
 function NotFoundComponent() {
   return (
