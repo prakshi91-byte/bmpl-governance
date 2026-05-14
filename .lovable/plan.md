@@ -1,84 +1,78 @@
-## BPML Governance Platform — Implementation Plan
+## Goal
 
-A modern enterprise web app (TanStack Start + Tailwind + shadcn) for governing SAP Solution Manager BPML, capability templates, business templates, project rollout scope and deployment coverage. Visual language: Microsoft Fluent + Linear + SAP Fiori — dense, light, neutral surfaces, no dashboard overload.
+Replace the static `src/data/bpml.generated.ts` (≈3.5K records across 15 entities) with a real Postgres database on Lovable Cloud, gate access behind login, and add admin/viewer roles.
 
-### Data foundation (from `BPML_V1.xlsx`)
+## Phase 1 — Backend setup
 
-The Excel has 7 sheets. We'll parse the relevant ones once at build time into a typed JSON dataset shipped with the app (no backend in v1):
+1. Enable Lovable Cloud (provisions Postgres, Auth, Storage).
+2. Create schema via migration — one table per entity:
+   - `process_domains`, `process_areas`, `processes`, `capabilities`
+   - `templates`, `template_steps`, `capability_template_links`
+   - `business_templates`, `business_template_scope`, `business_template_levels`
+   - `projects`, `project_scope`, `coverage_cells`
+   - `entities`, `product_groups`, `geographical_scope`
+   - `profiles` (linked to `auth.users`, auto-created via trigger)
+   - `user_roles` + `app_role` enum (`admin`, `viewer`) — stored in a separate table per security best practice
+3. Add `has_role(uuid, app_role)` SECURITY DEFINER function.
+4. RLS policies:
+   - All BPML tables: SELECT for any authenticated user; INSERT/UPDATE/DELETE only for `admin`.
+   - `profiles`: users read/update own row.
+   - `user_roles`: users read own roles; only admins write.
 
-- **BPML TABLE** (2,902 rows) — full denormalized hierarchy: IT Domain, IT Service, Process Domain (e.g. `A2R - Accounting 2 Report`), Process Area (`A2R.00.MD - Master Data`), Process / Capability (`A2R.0000 - MD Master Data`), Template ID + Name, Template Step, Bekaert Standard (`YES/Global`, `YES/Option`, `LEG Country Specific`, `Phase Out`, `No More Used`).
-- **CAPABILITY TEMPLATE TABLE** — template + step + transaction + standardization.
-- **Other Master Data** — Entity list, Product Groups, Business Template Levels (L-0…L-4), Geographical Scope, IT Domains/Services, Process Domains.
-- The remaining sheets (Business Template Definition, Scope, Project Scoping, Coverage Map) are empty schema templates → we generate realistic seed records that conform to those schemas.
+## Phase 2 — Seed data
 
-A Node script (`scripts/build-dataset.mjs`, run once) will read the xlsx via `xlsx` package and emit `src/data/bpml.generated.ts` containing typed arrays:
-`processDomains`, `processAreas`, `capabilities`, `templates`, `templateSteps`, `businessTemplates`, `businessTemplateScope`, `projects`, `projectScope`, `coverageCells`, `entities`, `productGroups`, `users`, `roles`.
-Synthetic but realistic data is generated for businessTemplates / projects / coverage / users using the real master data so IDs cross-reference correctly.
+Write a one-off seed script (`scripts/seed-bpml.ts`) that reads `bpml.generated.ts` and bulk-inserts every record using the service-role client. Run it once after migration.
 
-### Architecture
+## Phase 3 — Auth
 
-- **Routing (TanStack Start, file-based):**
-  - `__root.tsx` — 3-panel `AppShell` (left nav rail + collapsible nav, top bar with global search + user menu, main outlet, right contextual panel slot via context).
-  - `index.tsx` — Home: lightweight landing (KPIs strip + recent activity + quick links — *not* a heavy dashboard).
-  - `hierarchy.tsx` — Flagship Process Hierarchy Explorer.
-  - `capabilities.index.tsx` + `capabilities.$capabilityId.tsx` — list & detail workspace.
-  - `templates.index.tsx` + `templates.$templateId.tsx` — template workspace (tabs: Overview / Steps / Capabilities / Deployments).
-  - `steps.tsx` — Template Steps grid (cross-template, sticky filters).
-  - `business-templates.index.tsx` + `business-templates.$id.tsx` — packages + multi-select assignment.
-  - `projects.index.tsx` + `projects.$projectId.tsx` — project scope workspace.
-  - `coverage.tsx` — Coverage heatmap.
-  - `admin.users.tsx`, `admin.roles.tsx`, `admin.role-assignments.tsx`, `admin.master-data.tsx`.
+1. Email + Google sign-in (Lovable broker for Google).
+2. `/login`, `/signup` public routes.
+3. `_authenticated` layout route guarding everything else.
+4. `_authenticated/_admin` nested layout for admin-only pages (Admin section, Create/Edit flows).
+5. Auth state hook + `onAuthStateChange` listener at root that invalidates router + query cache.
+6. Bootstrap: first signed-up user gets `admin` role; subsequent users default to `viewer`.
 
-- **State:** Zustand store for UI (selected node, right-panel object, nav collapse, role impersonation). TanStack Query wraps in-memory dataset accessors so future API swap is trivial.
+## Phase 4 — Data layer rewrite
 
-- **Security model (client-side simulation in v1):** roles `GlobalAdmin | DomainAdmin | ProjectManager | Viewer`. A `useCurrentRole()` hook + role switcher in top bar gates write actions and admin routes via a `<RequireRole>` guard. (No real auth — Cloud not enabled. Easy to upgrade to Lovable Cloud later.)
+Replace synchronous `repo` API with async server functions + TanStack Query:
 
-### Shared enterprise components (`src/components/enterprise/`)
+- New `src/lib/bpml.functions.ts` exposes `createServerFn` calls: `listDomains`, `listAreasOf(domainId)`, `getCapability(id)`, `searchAll(q)`, etc. — one per current `repo.*` method.
+- New `src/lib/bpml.queries.ts` wraps each in `queryOptions` for use with `useSuspenseQuery` and `ensureQueryData`.
+- Mutations (`addArea`, `addProcess`, `addCapability`, `addTemplate`, `setProjectScope`) become POST server functions guarded by `requireSupabaseAuth` + admin-role check.
+- Drafts store stays client-side (Zustand) — only "publish" calls the mutation.
 
-- `AppShell` — 3-panel layout with collapsible left nav and slide-in right detail panel.
-- `NavRail` + `NavSection` — icon + label, active state, badge counts.
-- `HierarchyTree` — virtualized expandable tree with search highlight, counts, status badges.
-- `DataGrid` — sticky header, dense rows, column visibility, multi-filter chips, pagination, row selection, CSV export. Built on TanStack Table.
-- `FilterBar` — sticky chip-based filters (domain, area, status, standardization).
-- `DetailPanel` — right-side contextual panel with metadata sections, tabs, related links.
-- `WorkspaceTabs`, `MetadataList`, `StatusBadge`, `StandardizationBadge`, `Breadcrumbs`, `EmptyState`, `KPIStat` (compact), `HeatmapCell`.
-- `CommandPalette` (⌘K) — global search across hierarchy/templates/capabilities.
+## Phase 5 — Rewire 22 consumer files
 
-### Screen specs
+For each route/component currently importing `repo`:
 
-1. **Hierarchy Explorer** — left: tree (Domain → Area → Process → Capability) with counts and search; center: capabilities grid for the selected node with FilterBar + StandardizationBadge columns + template count; right: DetailPanel summarizing the selected capability (owner, IT domain/service, deployment stats stub, top templates, linked projects).
-2. **Capability Detail** — workspace with breadcrumb, metadata header, tabs Overview / Templates / Relationships / History.
-3. **Template Workspace** — header with Bekaert Standard badge + usage; tabs Overview / Steps / Capabilities / Deployments; Steps tab uses DataGrid (Step Seq, Step Name, SAP Transaction, Description, Standardization, Status).
-4. **Template Steps** — flat searchable grid across all templates with sticky filters (template, transaction prefix, standardization).
-5. **Business Templates** — list + detail with multi-select capability-template assignment dialog (transfer-list pattern), readiness indicator, scope summary.
-6. **Project Scope Workspace** — project header, tabs: Business Templates assigned, Direct Templates, Coverage; assignment dialogs; rollout scope summary.
-7. **Coverage Map** — sticky-header/sticky-first-column matrix: rows = process areas/capabilities, columns = business entities; cells colored Covered / Partial / Not covered / N/A with hover tooltip + click → opens right DetailPanel with assignment context.
-8. **Administration** — Users, Roles, Role Assignments (matrix), Master Data (entity list, product groups, geo scope, BT levels, IT domains/services).
+- Convert page render to use `useSuspenseQuery` (or `Route.useLoaderData` for routes with a loader under `_authenticated`).
+- Replace write calls (`addAreaToRepo`, `addCapabilityToRepo`, etc.) with `useServerFn` mutations + `queryClient.invalidateQueries`.
+- Add `errorComponent` + `pendingComponent` to every loader-bearing route.
+- Hide admin-only UI (Create button, Admin nav, edit actions) behind `auth.hasRole('admin')`.
 
-### Design system
+## Phase 6 — Cleanup
 
-- Update `src/styles.css` tokens to a Fluent/Fiori-inspired neutral palette: near-white background `oklch(0.985 0.002 250)`, panel `oklch(1 0 0)`, border `oklch(0.92 0.005 250)`, foreground `oklch(0.22 0.02 260)`, primary SAP-blue `oklch(0.52 0.15 250)`, plus semantic standardization colors (global=emerald, option=blue, legacy=amber, phase-out=orange, retired=zinc), heatmap colors. Add `--shadow-panel`, `--radius-panel`. Compact typography scale (13px base in grids, 14px body).
-- Inter (already common) via `@fontsource` for body; tabular numerals on grid cells.
+- Remove `src/data/repo.ts` mutators and the static export (or keep as a typed shape file only).
+- Keep `bpml.generated.ts` checked in for the seed script, then optionally delete.
+- Update `AppShell` to show user menu (avatar, sign out, current role).
 
-### Technical details
+## Technical notes
 
-- Add deps: `xlsx` (build-time only), `@tanstack/react-table`, `@tanstack/react-virtual`, `zustand`, `@fontsource/inter`, `cmdk` (already via shadcn command), `lucide-react` (present).
-- `scripts/build-dataset.mjs` — invoked manually once; output committed to `src/data/bpml.generated.ts` (no runtime xlsx).
-- All grids virtualized when row count > 200 (template steps will be ~2.9k).
-- Right detail panel is a context-driven slide-over on small widths, side panel on ≥1280px.
-- Routing follows TanStack file-based conventions (`createFileRoute`); each route sets its own `head()` meta.
-- No Lovable Cloud in v1 — data is read-only from the bundled dataset; mutations (assignments, admin edits) live in Zustand for the session and persist to `localStorage`.
+- Cascade deletes wired through FKs (domain → areas → processes → capabilities → template links).
+- Composite PKs where natural: `capability_template_links(capability_id, template_id)`, `business_template_scope(business_template_id, template_id)`, `project_scope(project_id, business_template_id, template_id)`, `coverage_cells(process_area_id, entity_id)`.
+- IDs that are strings in current data (`"A2R"`, `"A2R.00.MD"`) become PK text columns — preserved as-is so existing URLs (`/capabilities/$capabilityId`) keep working.
+- Numeric template IDs stay `int` PKs.
+- Search uses Postgres `ilike` across name/id columns, returned by a single `searchAll` server function.
 
-### Build order
+## Delivery order (separate turns recommended)
 
-1. Tokens + AppShell + NavRail + routing skeleton + dataset script & generated types.
-2. Hierarchy Explorer (tree + grid + detail panel) — flagship.
-3. Capability detail + Template workspace + Steps grid.
-4. Business Templates + Project Scope (with assignment dialogs).
-5. Coverage Map heatmap.
-6. Administration screens + role guard + role switcher.
-7. Polish: command palette, empty states, keyboard nav, responsive pass.
+This is large. I'd ship it in stages and let you sanity-check each:
 
-### Out of scope for v1
+1. Enable Cloud + create schema + auth scaffolding + login pages.
+2. Seed script + `_authenticated` guard + role bootstrap.
+3. Read-side rewrite: hierarchy, capabilities, processes, templates pages.
+4. Read-side rewrite: business templates, projects, coverage.
+5. Write-side rewrite: Create flow, admin pages, drafts publish.
+6. Cleanup + polish.
 
-Real auth/persistence (Cloud), import/export of xlsx at runtime, audit history beyond mocked entries, mobile-first layouts (desktop-first as requested).
+Reply "go" to start with stage 1, or tell me which stages to combine / change.
