@@ -4,8 +4,9 @@ import { PageHeader } from "@/components/enterprise/PageHeader";
 import { StandardizationBadge, StatusBadge } from "@/components/enterprise/Badges";
 import { useRightPanel } from "@/components/enterprise/AppShell";
 import { useMemo, useState } from "react";
-import { Check, ChevronRight, Minus } from "lucide-react";
+import { Check, ChevronRight, Lock, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
 
 type ProcNode = { id: string; name: string; templates: Template[] };
 type AreaNode = { id: string; name: string; processes: Map<string, ProcNode> };
