@@ -5,9 +5,9 @@ import { StatusBadge, StandardizationBadge } from "@/components/enterprise/Badge
 import { useRightPanel } from "@/components/enterprise/AppShell";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ROLE_PERMS, useUIStore } from "@/stores/ui-store";
 import { Check, ChevronRight, Download, Layers, Plus, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/projects/$projectId")({
   loader: ({ params }) => {
@@ -30,6 +30,8 @@ const TABS = ["Business Templates", "Direct Templates", "Complete Scope", "Cover
 
 function ProjectDetail() {
   const { project } = Route.useLoaderData();
+  const role = useUIStore((state) => state.currentRole);
+  const isAdmin = ROLE_PERMS[role].canAdmin;
   const [tab, setTab] = useState<(typeof TABS)[number]>("Business Templates");
   const [version, setVersion] = useState(0);
   const scope = useMemo(() => repo.scopeOfProject(project.id), [project.id, version]);
@@ -74,6 +76,7 @@ function ProjectDetail() {
             assigned={bts}
             directTemplates={tpls}
             projectId={project.id}
+            isAdmin={isAdmin}
             onSaved={() => setVersion((value) => value + 1)}
           />
         )}
@@ -538,15 +541,15 @@ function BusinessTemplateScope({
   assigned,
   directTemplates,
   projectId,
+  isAdmin,
   onSaved,
 }: {
   assigned: NonNullable<ReturnType<typeof repo.businessTemplate>>[];
   directTemplates: NonNullable<ReturnType<typeof repo.template>>[];
   projectId: string;
+  isAdmin: boolean;
   onSaved: () => void;
 }) {
-  const { hasRole } = useAuth();
-  const isAdmin = hasRole("admin");
   const [editing, setEditing] = useState(false);
   const [query, setQuery] = useState("");
   const [level, setLevel] = useState("__all");

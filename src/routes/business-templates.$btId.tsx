@@ -6,7 +6,6 @@ import { useRightPanel } from "@/components/enterprise/AppShell";
 import { useMemo, useState } from "react";
 import { Check, ChevronRight, Lock, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/use-auth";
 
 type ProcNode = { id: string; name: string; templates: Template[] };
 type AreaNode = { id: string; name: string; processes: Map<string, ProcNode> };
@@ -107,10 +106,7 @@ export const Route = createFileRoute("/business-templates/$btId")({
 
 function BTDetail() {
   const { bt } = Route.useLoaderData();
-  const { hasRole } = useAuth();
-  const isAdmin = hasRole("admin");
-  const assigned = repo.templatesOfBT(bt.id);
-  const [picker, setPicker] = useState<Set<number>>(new Set(assigned.map((t) => t.id)));
+  const [picker, setPicker] = useState<Set<number>>(new Set());
   const [q, setQ] = useState("");
   const [openD, setOpenD] = useState<Set<string>>(new Set());
   const [openA, setOpenA] = useState<Set<string>>(new Set());
@@ -124,7 +120,6 @@ function BTDetail() {
     const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); setS(n);
   };
   const setMany = (ids: number[], on: boolean) => {
-    if (!isAdmin) return;
     setPicker((p) => {
       const n = new Set(p);
       for (const id of ids) on ? n.add(id) : n.delete(id);
@@ -164,11 +159,6 @@ function BTDetail() {
         breadcrumbs={[{ label: "Rollout" }, { label: "Business Templates", to: "/business-templates" }, { label: bt.id }]}
         meta={<><StatusBadge value={bt.level} intent="info" /><span>{bt.productGroup}</span><span>{bt.geoScope}</span><span>{picker.size} templates</span></>}
       />
-      {!isAdmin && (
-        <div className="flex items-center gap-2 border-b border-border bg-surface-2 px-3 py-1.5 text-[12px] text-muted-foreground">
-          <Lock className="size-3.5" /> Read-only — admin role required to create or edit business templates.
-        </div>
-      )}
       <div className="grid min-h-0 flex-1 grid-cols-2 gap-px bg-border">
         <div className="flex min-h-0 flex-col bg-surface">
           <div className="flex h-9 items-center justify-between border-b border-border bg-surface-2 px-3 text-[12px] font-semibold">
