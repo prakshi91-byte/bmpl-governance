@@ -4,12 +4,16 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/enterprise/AppShell";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 
 function NotFoundComponent() {
   return (
@@ -74,8 +78,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "Govern SAP Solution Manager BPML, capability templates, project rollout scope, and deployment coverage.",
       },
       { property: "og:title", content: "BPML Governance Platform" },
-      { property: "og:description", content: "Enterprise governance for BPML, templates, and deployment coverage." },
+      { property: "og:description", content: "Process Compass manages SAP BPML, templates, project scope, and deployment coverage." },
       { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "BPML Governance Platform" },
+      { name: "description", content: "Process Compass manages SAP BPML, templates, project scope, and deployment coverage." },
+      { name: "twitter:description", content: "Process Compass manages SAP BPML, templates, project scope, and deployment coverage." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0064ef24-c7a6-4200-a215-b18ae56e5a80/id-preview-4e903605--82bc9dd3-9b3a-4c1f-bf7f-7fd9c301d03d.lovable.app-1778790528298.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0064ef24-c7a6-4200-a215-b18ae56e5a80/id-preview-4e903605--82bc9dd3-9b3a-4c1f-bf7f-7fd9c301d03d.lovable.app-1778790528298.png" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
@@ -103,9 +113,39 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell>
-        <Outlet />
-      </AppShell>
+      <AuthProvider>
+        <AuthGate />
+      </AuthProvider>
     </QueryClientProvider>
+  );
+}
+
+const PUBLIC_PATHS = new Set(["/login", "/signup"]);
+
+function AuthGate() {
+  const { session, loading } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const isPublic = PUBLIC_PATHS.has(pathname);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!session && !isPublic) navigate({ to: "/login" });
+    if (session && isPublic) navigate({ to: "/" });
+  }, [loading, session, isPublic, pathname, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-[13px] text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
+  if (isPublic) return <Outlet />;
+  if (!session) return null;
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
   );
 }
